@@ -1,0 +1,23 @@
+.filters {
+  margin-bottom: 12px;
+}
+
+.filters button.active {
+  background: #d6e8ff;
+  border-color: #4a90e2;
+}
+
+.pager {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+tbody tr {
+  cursor: pointer;
+}
+
+tbody tr:hover {
+  background: #f5f5f5;
+}

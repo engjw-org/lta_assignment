@@ -1,0 +1,53 @@
+<section>
+  <div class="filters">
+    <button
+      type="button"
+      [class.active]="selectedStatuses.includes('REGISTERED')"
+      (click)="toggleStatus('REGISTERED')"
+    >
+      Registered
+    </button>
+    <button
+      type="button"
+      [class.active]="selectedStatuses.includes('DEREGISTERED')"
+      (click)="toggleStatus('DEREGISTERED')"
+    >
+      Deregistered
+    </button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>UUID</th>
+        <th>Brand</th>
+        <th>Type</th>
+        <th>Status</th>
+        <th>Start Date</th>
+        <th>Category</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let v of filteredVehicles()" (click)="open(v)">
+        <td>{{ v.uuid.substring(0, 8) }}</td>
+        <td>{{ v.brand }}</td>
+        <td>{{ v.type }}</td>
+        <td>{{ v.status }}</td>
+        <td>{{ v.startDate }}</td>
+        <td>{{ v.category }}</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="pager">
+    <button type="button" (click)="prevPage()" [disabled]="page === 0">Previous</button>
+    <span>Page {{ page + 1 }}</span>
+    <button type="button" (click)="nextPage()">Next</button>
+  </div>
+
+  <app-vehicle-detail
+    *ngIf="selected"
+    [vehicle]="selected"
+    (close)="close()"
+  ></app-vehicle-detail>
+</section>

@@ -1,0 +1,25 @@
+# Java / Maven
+apps/api/target/
+*.class
+*.jar
+*.war
+*.iml
+.idea/
+.vscode/
+
+# Node / Angular
+apps/web/node_modules/
+apps/web/dist/
+apps/web/.angular/
+apps/web/coverage/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Local docker-compose overrides (verification only — must not ship)
+docker-compose.override.yml
+docker-compose.override.yaml
