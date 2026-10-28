@@ -33,7 +33,7 @@
         <td>{{ v.brand }}</td>
         <td>{{ v.type }}</td>
         <td>{{ v.status }}</td>
-        <td>{{ v.startDate }}</td>
+        <td>{{ v.startDate | date: 'dd MMM yyyy' }}</td>
         <td>{{ v.category }}</td>
       </tr>
     </tbody>

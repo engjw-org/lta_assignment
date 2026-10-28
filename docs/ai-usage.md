@@ -302,3 +302,116 @@ _User to complete._
 ### 4. Where AI accelerated you vs where you overrode it
 
 _User to complete._
+
+## Entry 007 — 28 Oct 2026 — Implement issue #1 and run the tests
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+now update the code and fix all the issue 1 found, and run the unit test
+```
+
+### 3. AI output and user assessment
+
+**AI answer:**
+
+Implemented the issue #1 date parsing, CSV validation and Start Date display fixes. All 103 backend tests and both frontend tests pass. The loader accepts 226 of the 234 supplied rows and rejects the eight malformed-time rows with structured diagnostics. The original CSV files and committed tests are unchanged. Changes are ready for review and a manual commit on `issue-1-fix-date-parsing`.
+
+**Work produced and decisions:**
+
+- Read the assignment, agent instructions, current ADR, production files and committed tests. Verified that GitHub issue #1, “Date Time format issue”, is open through the authenticated browser. Verified that commit `b1693e7` contains the previously run failing tests and ADR, with no related production fix, before changing production code. The working tree was initially clean.
+- Updated `starter/apps/api/src/main/java/sg/lta/vrls2/service/VehicleCsvLoader.java` to parse both dates strictly as `DD/MM/YYYY` and times as 24-hour `HH:mm:ss`. Invalid calendar dates, year zero, single-digit hours and out-of-range times are rejected instead of becoming null or being normalised.
+- Validate the exact eight-column header and row width, all required values, canonical UUIDs, status and source-file consistency, length limits, surrounding whitespace and control characters before constructing a `Vehicle`. Use the 100-character brand and 50-character type limits already encoded in the committed tests and ADR; these remain application policy pending product-owner confirmation, not exact limits supplied by the assignment. Do not infer brand/type allow-lists from the sample data.
+- Read records individually, retain valid neighbouring records and repeated UUID events, and log each rejected record as JSON with `source`, physical starting `row`, `field` and `reason`. Diagnostics exclude raw field values. Invalid headers reject that file; an unrecoverable CSV syntax error rejects the remaining file while allowing other files to load. The CSV parser preserves ordinary field content while decoding standard CSV quoting.
+- Updated `starter/apps/web/src/app/vehicle-list/vehicle-list.component.html` to use Angular's date pipe with `dd MMM yyyy`, producing dates such as `08 Apr 2026` without changing the source value.
+- Kept the supplied CSV files unchanged, as required by R-4.1 and R-6.1. Malformed times are rejected rather than silently padded. Preserved the user's ADR and previous log entries. No unrelated features were implemented.
+
+**Validation actually run:**
+
+- Backend: Java 21 in the existing Maven Docker environment, running `org.jacoco:jacoco-maven-plugin:0.8.12:prepare-agent test org.jacoco:jacoco-maven-plugin:0.8.12:report`. Result: **103 tests, 0 failures, 0 errors, 0 skipped** — 98 validation cases, four dataset cases and the existing controller smoke test. Log: `starter/apps/api/target/issue-1-green-run.log`.
+- JaCoCo: `VehicleCsvLoader` has **80/81 executable lines covered (98.8%)** and **36/40 branches covered (90%)**. The remaining uncovered executable line is the malformed-CSV-syntax rejection log. This measures the loader class, not whole-application or HTML-template coverage. Report: `starter/apps/api/target/site/jacoco/index.html`. Coverage tooling was invoked from the command line; no build dependency or configuration was changed.
+- Frontend: `npm.cmd test -- --progress=false` with headless Chrome. Result: **2 tests passed**, checking `08 Apr 2026` and `01 Nov 2022` in the rendered Start Date cell and preservation of the original date value. Log: `starter/apps/web/.angular/issue-1-green-run.log`.
+- The dataset checks compare every field of the accepted events and require a rejection diagnostic for each of the eight known malformed-time rows: personal 42 accepted, commercial 33, deregistered personal 95, deregistered commercial 56.
+- `git diff --check` passed. Verified that the committed tests and source CSVs are unchanged and no files are staged. Generated test reports remain ignored. No commits, pushes or merges were performed.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 008 — 28 Oct 2026 — Diagnose stale page on port 4200
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+after update code, why the 4200 page no update
+```
+
+### 3. AI output and user assessment
+
+**AI answer:**
+
+The page on port 4200 is served by the existing Docker web container using an Angular production build and Nginx, rather than Angular's development server. The Compose configuration has no source bind mounts or watch configuration. Saving source changes therefore does not update the running application. Both the web and API containers were created approximately 26 hours before this check and still serve the earlier build. Explained that running `docker compose up -d --build` from `starter` rebuilds and updates both services; then refresh the page. A container restart alone does not build the changed source.
+
+**Work produced and validation:**
+
+- Read the assignment, current agent instructions, Compose configuration, frontend Dockerfile, package scripts, Nginx configuration, current template diff, and existing AI log. Observed the current issue branch and existing uncommitted implementation changes; left them unchanged.
+- The initial restricted Docker and localhost requests were denied. Retried with approved elevated read-only access and successfully inspected the running containers and both HTTP endpoints.
+- Confirmed `starter-web-1` maps port 4200 to port 80 and the HTTP response is served by Nginx. Confirmed `starter-api-1` maps port 8080 and the first vehicle still has `startDate` equal to `2022-01-11`, corresponding to the old incorrect interpretation of source value `01/11/2022`.
+- Did not rebuild or restart containers, run tests, change production code, stage files, commit, push, or merge. Appended only this diagnostic log entry. The rebuild command is a recommended next step, not an action already executed.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 009 — 28 Oct 2026 — Build and run the updated application
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+help me build and run
+```
+
+### 3. AI output and user assessment
+
+**AI answer:**
+
+Rebuilt and started both Docker services. The application is running at `http://localhost:4200`, and the API is available at `http://localhost:8080/api/vehicles`. Verified the updated page displays `01 Nov 2022` and the API returns `2022-11-01`. Fixed a frontend build configuration problem encountered during the build; both frontend unit tests still pass. Changes remain unstaged and uncommitted for manual review.
+
+**Work produced and validation:**
+
+- Read the assignment, agent instructions, startup README, Compose configuration, Dockerfiles, Angular configurations and current AI log. Preserved the existing issue #1 changes and user log content.
+- Ran `docker compose up -d --build` from `starter`. The first attempt failed because `tsconfig.app.json` included `src/**/*.ts`, which also included the committed component tests, while the application build intentionally had no Jasmine types. The errors identified test globals such as `describe`, `jasmine` and `expect`. The original failure is recorded in `starter/apps/api/target/build-and-run.log`.
+- Verified that GitHub issue #1 remains open and the current branch is `issue-1-fix-date-parsing`, with the existing failing-test commit `b1693e7`. Added `"exclude": ["src/**/*.spec.ts"]` to `starter/apps/web/tsconfig.app.json`. This separates the application build from the existing test build; `tsconfig.spec.json`, test assertions and application behaviour were not changed in this turn.
+- Repeated `docker compose up -d --build` successfully. Docker reported both images built and recreated and started `starter-api-1` and `starter-web-1`. Successful build output is recorded in `starter/apps/api/target/build-and-run-success.log`. Both containers remain running for the user.
+- Reran `npm.cmd test -- --progress=false` with headless Chrome: **2 tests passed**. Log: `starter/apps/web/.angular/build-config-tests.log`. Backend tests were not rerun in this turn; the supplied API Dockerfile packages with `-DskipTests`, and the 103 passing backend tests are recorded in Entry 007.
+- Confirmed both HTTP endpoints return **200**. The first API record has `startDate: 2022-11-01`, `endDate: 2032-01-01` and `time: 12:30:00`. Startup logs show structured rejections for the same eight malformed-time rows.
+- Opened the rebuilt frontend in Chrome, verified the Start Date cell reads `01 Nov 2022`, and left the application tab open for review. This was a startup and date-display check, not a complete audit of the assignment's other requirements.
+- Updated this log and the single build configuration file only. No staging, commits, pushes or merges were performed.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
