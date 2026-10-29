@@ -90,6 +90,12 @@ Alternatively, combine the build and startup with `docker compose up -d --build`
 
 Refresh <http://localhost:4200> after both services start. These containers serve built images, so saving source files or only restarting containers does not rebuild the application. Docker builds do not replace the test steps above: the API Dockerfile skips test execution, and the web Dockerfile builds without running Angular tests.
 
+## Demo recording
+
+[Watch the captioned demo (4 min 1 sec)](https://drive.google.com/file/d/10T1qCefU_wUiN7DizVeRpHRZI4k1i4PD/view?usp=sharing)
+
+Shows the running local app, search and filters, detail popups, audit information, live API error checks, saved test results, architecture and documented limitations.
+
 ## Data
 
 Sample CSVs live in `data/`. They are loaded at backend startup.

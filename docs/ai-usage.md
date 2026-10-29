@@ -1384,3 +1384,63 @@ _User to complete._
 ### 4. Where AI accelerated you vs where you overrode it
 
 _User to complete._
+
+## Entry 033 — 29 Oct 2026 — Prepare the assignment demo
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+can help me do the demo video
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Read the assignment's five-minute demo limit and README-link deliverable, repository instructions and current documentation. Confirmed both local Docker services were running and inspected the available application records, UI and saved test evidence. Asked whether the user wanted a captioned recording, a script for their own narration, or a synthetic voiceover. The user selected a captioned screen recording; execution and validation are recorded in Entry 034. Planned the walkthrough around actual app behaviour and labelled supporting evidence, with no claim that the small supplied dataset demonstrates the 2,000-record cap or the scale/performance target.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 034 — 29 Oct 2026 — Create the captioned demo recording
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+Question: "For the assignment’s ≤5-minute demo, which format would you prefer?"
+
+```text
+Create a screen recording with captions
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Created docs/demo/vrls2-demo.mp4 and the editable subtitle file docs/demo/vrls2-demo.srt. The silent recording is 240.75 seconds (about 4 min 1 sec), 1280×864, H.264 at 24 fps, and 3,338,306 bytes. The actual application viewport was 1280×720; chapter headings and twenty caption segments were added in separate bands above/below it so no application content is obscured. Added relative links to the video and captions in starter/README.md.
+
+Captured the real running Docker app in an isolated local Chrome session. Demonstrated the initially empty list, blank search returning 226 events, date display, 50-event paging, local status filters, typing before submitting, Toyota search (102 matches), combined Toyota/5-seat/date criteria (68 matches), UUID-prefix search, all twelve detail values, refresh preserving the exact audit values, closing back to the same list, and two independently open vehicle popups. Did not inject synthetic data, mock responses, alter the CSVs or modify application code.
+
+Supporting scenes are explicitly labelled demo notes/documentation/saved evidence. The error scene uses freshly requested real HTTP 400 and 404 code/message responses. Test evidence was checked against existing saved Maven/Angular logs (162 backend and 60 Angular passes); it is clearly labelled a saved 29 Oct 2026 run, not a newly executed suite. Local Git history confirms the displayed red commit 6d8fb8e precedes implementation commit 8fc610d. Rendered the existing Mermaid source for the architecture scene. Included the ADR's server-search/calendar departures, the 2,000-cap history-access limitation, deferred production identity/admin roles and unmeasured scale/timing target. The supplied 226-event data does not trigger the cap, and the recording makes no claim to demonstrate that state or the multi-event chooser.
+
+Used temporary recording/encoding helpers and a downloaded imageio-ffmpeg encoder under the existing ignored .angular directory; application dependencies remain unchanged. Decoded the entire completed MP4 successfully, checked its duration/resolution and visually inspected nine representative encoded frames for layout and readable captions. Preserved the app's running containers and closed only the isolated recording browser. No tests, application rebuilds, production changes, staging, commits, uploads or public sharing were performed. The video is ready for the user's review; no submission or acceptance is claimed.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
