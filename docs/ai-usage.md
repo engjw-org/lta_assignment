@@ -759,3 +759,187 @@ _User to complete._
 ### 4. Where AI accelerated you vs where you overrode it
 
 _User to complete._
+
+## Entry 018 — 29 Oct 2026 — Review issue #5 before writing tests
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+1. Problem statement — what is wrong or missing, in user-visible terms
+- R-1.4 and R2.1 both with default sorting but on different columns
+- R-1.7 and R3.2, if with so huge of vechicle data, how the admin to view it in calendar view
+- R-1.8, R-3.1, R-3.2 and R-3.3, if search is performed on client side, which mean have to call all the data to the frontend and do the search, so it impossible with a list view with 2 seconds time to interactive
+
+2. Root cause hypothesis — your best current theory (you may be wrong; that is fine, update the issue when you learn more)
+
+3. Acceptance criteria — specific, testable conditions that mean the issue is resolved
+- R-1.4 and R2.1 can combine, sort with R.2.1 first then follow up by R-1.4
+- R-1.7 and R3.2, remove calendar view but add date time filter (start and end) in list view
+- R-1.8, R-3.1, R-3.2 and R-3.3, the search will as a payload to api, and because the records is huge, should set a limit like maximum records pull is 2,000, so the filter and sorting can work well also. Maybe need create more search option, like the datetime filter, seat type, so only can perform better with within 2,000 records.
+- pass unit test
+
+4. Requirement reference — which R-x.y this maps to, or discovered-defect if it does not map to a stated requirement
+R-1.4 The list view must default to sorting by registration date, descending (newest first).
+R-2.1 All tabular data displayed to the admin must be sorted alphabetically by vehicle UUID by default, to give a stable visual order across sessions.
+R-1.7 The calendar view must show every vehicle on its corresponding day, and each vehicle must appear exactly once per day cell.
+R-3.2 The system must handle the full historical dataset, expected to grow to ~250,000 vehicle records by 2027.
+R-1.8 A search box must allow free-text search by vehicle UUID prefix or brand.
+R-3.1 All filtering, sorting, and search must be performed on the client so that admins get instant feedback with no network round-trip.
+R-3.3 Time-to-interactive on the list view must be under 2 seconds on a standard office network.
+
+here my github issue 5, i need your help on
+
+1. i have created the feature based on the issue 5
+2. check on all my problem and suggestion, is it ok to proceed, if yes then continue below steps, else just stop and give me your suggestion
+3. i need the unit test like mentioned in point 8
+4. it no need any code changes, need the failing test first
+5. after done 1 to 3, update the ADR based on my github issue and the unit test done, dun add any additional no related on this issue fix info
+```
+
+_Markdown escape characters and line-continuation markup normalized; wording preserved._
+
+### 3. AI output and user assessment
+
+**AI answer and recommendation:**
+
+The issue needs revision before tests. Honoured the user's conditional instruction to stop and provide suggestions instead of proceeding with tests or ADR changes. Verified GitHub issue #5, “Requirement conflicts,” is open and contains the supplied analysis. It now explicitly surfaces the genuine R-1.4/R-2.1 sorting conflict; the earlier warning that no conflict issue exists is no longer applicable.
+
+- Sorting: two primary default orders cannot both hold in general. UUID ascending followed by date descending as a secondary key only orders dates within each UUID. Recommended registration date descending with UUID ascending as a tie-breaker, explicitly prioritising R-1.4 over R-2.1. Keeping UUID primary is also a possible deliberate decision, but it must acknowledge the departure from global newest-first ordering rather than claim both requirements are fully satisfied.
+- Calendar: R-1.7 plus dataset size is a usability/performance concern, not by itself a logical contradiction. Removing the calendar violates the explicit two-view requirement R-1.1. Suggested keeping the monthly view with per-day counts and expandable/paginated entries, with every applicable vehicle reachable. Any month-scoped server query belongs to the documented R-3.1 exception. Clarify the calendar/current-status/history interpretation with R-4.4 and R-4.5 rather than dropping event history.
+- Search and scale: the performance concern is reasonable, but “impossible under two seconds” is unproven without a defined browser/network benchmark. Server-side queries can be a justified resolution, but explicitly depart from R-3.1. Recommended applying search, all filters and ordering across the full dataset before returning 50-record pages (R-1.3), with total-match/continuation information. A hard 2,000-record result universe can hide valid matches or newer records and does not provide globally correct client sorting/filtering. If retained, 2,000 should be a transfer/batch bound with a way to reach further results, not a silent truncation of searchable history.
+- Acceptance criteria need the user's root-cause hypothesis, exact primary/secondary sort order, date-field/range/timezone semantics, text-search matching rules, and complete pagination behavior. Include missing references such as R-1.1, R-1.3, R-1.5, R-4.4 and R-4.5 where the decision affects them. Unit tests can check sorting ties, combined filters, boundaries and matches beyond record 2,000; a separate browser/performance test on 250,000 records is needed for the two-second criterion.
+
+**Assignment handling:** The recommendations above are AI review suggestions for the user to assess and express in their own words (§7), not a replacement issue submitted as their analysis. Before related implementation, the shared ADR must record the selected rules and requirement departures (§§9, 16), and the user must review and commit the failing tests (§8). No decision was recorded as approved.
+
+**Work and validation:** Read the assignment, agent rules, shared ADR, current list/backend code and recent log. Confirmed a clean working tree on `issue-5-requirement-conflict` at `e84e078` before this log edit. No production code, tests, CSVs or ADR changes; no test run, benchmark, Docker build, staging, commit, push, merge or GitHub write. Updated only this mandatory AI usage log and checked the diff for whitespace errors.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 019 — 29 Oct 2026 — Issue #5 selected scope
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+1 and 2 follow my suggestion, 3 just put in ADR first
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Followed the user's original UUID-ascending primary order, registration-date-descending secondary order, and list date filters instead of a calendar. This overrides the alternative sorting/calendar suggestions in Entry 018. Treated the API search payload and proposed 2,000-record limit as ADR-only, with no tests or implementation for that proposal. Continued the original instruction to prepare failing tests without production code changes.
+
+Explained that UUID-primary ordering departs from R-1.4's global newest-first order, and replacing the calendar departs from R-1.1, R-1.7 and R-4.4. The shared ADR now records those decisions rather than claiming all conflicting requirements are satisfied. The calendar/scale concern is labelled a usability concern, not a logical contradiction. API search, complete pagination, a limit that does not hide history, and a measured two-second performance target remain unresolved proposals. The current API returns one page: the new component tests cover supplied records, not global sorting/filtering of the entire history.
+
+Asked whether the date bounds should operate on `startDate + time` or the separate CSV fields. The user's reply and resulting date contract are recorded in Entry 020.
+
+Updated `docs/adr/0001-vrls2-takehome.md` using the six exact §9 headings and a four-sentence Context. Preserved issue #1 ingestion/date-format decisions, issue #3 popup/event decisions, security controls, the explicit R-6.3 production closure plan and outstanding security work. No GitHub issue edit was made; the user should add the clarified scope and their missing root-cause hypothesis in their own words (§7).
+
+**Assignment handling:** issue #5 was verified open during the preceding review; work remains on `issue-5-requirement-conflict`. The shared ADR addresses the material conflicts as required by §§9/16. Under §§8/16, the user must review and manually commit the red tests before production implementation; that commit has not been created or claimed. Test results and files are recorded in Entry 020. All prepared changes remain unstaged and uncommitted.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 020 — 29 Oct 2026 — Separate CSV date filters and failing tests
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+In response to the question:
+
+```text
+For the list’s “start” and “end” date-time filter, should both bounds select records by startDate + time, or should they filter the separate CSV start_date and end_date fields?
+```
+
+User's answer:
+
+```text
+Separate start_date/end_date filters
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Used the separate fields as requested. Explicitly stated the test contract for review: optional, inclusive `start_date >= Start date` and `end_date <= End date`; both conditions combine with AND and the selected status. These CSV fields are dates, so the controls use date-only precision; the separate `time` field does not affect matching. The user selected the fields; the inclusive comparison rules are the assistant's stated interpretation, not an additional quoted user instruction.
+
+Added eight component tests in `starter/apps/web/src/app/vehicle-list/vehicle-list.query.spec.ts`:
+
+1. Full UUID ascending takes precedence over a newer date on another UUID, using UUIDs with identical displayed prefixes.
+2. Repeated-UUID events sort by start date descending across months/years, preserving all events and source values/order.
+3. The start-date lower bound includes equality, excludes earlier dates, and does not compare end date or time.
+4. The end-date upper bound includes equality, excludes later dates, and does not reuse start date for both filters.
+5. Both date conditions combine with the selected status and retain UUID/date order.
+6. Either filter can be cleared independently; clearing both restores all supplied events without rewriting them.
+7. A valid filter with no matches removes stale rows; clearing restores the records.
+8. Opening a filtered row transfers the exact event while preserving both date controls and list order.
+
+Tests interact with labelled controls and rendered rows. The six filter tests currently stop after a failed assertion identifying a missing control, avoiding unrelated null-access errors; their deeper behavior assertions will run once controls exist. The calendar is already absent, so no artificial failing removal test was added. The ADR records that list-only choice as a requirement departure.
+
+**Actual validation:** ran `npm.cmd test -- --progress=false` from `starter/apps/web` using headless Chrome. Exit code 1, **42 executed: 8 failed, 34 passed**. Both sorting tests fail because current rows retain input order; the other six fail because labelled start/end date filters do not exist. All 34 existing tests pass. Full output is in the ignored local `.angular/issue-5-red.log`. No backend tests were changed or rerun, and no coverage, full-history correctness or performance claim is made. Checked the ADR headings and `git diff --check`.
+
+**Scope and next step:** only the new test file, shared ADR and AI usage log were edited. No production code, CSV, build, Docker, staging, commit, push, merge or GitHub write. Review and manually commit the failing tests on the issue branch before implementing (§§8/16); the remaining API/scale proposal is documentation only.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 021 — 29 Oct 2026 — Explain issue #5 failing tests for review
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+explain the unit tests you added for issue 5 and why they fail, so i can review before manually committing
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Reviewed `vehicle-list.query.spec.ts`, the current list implementation/template and the saved `starter/apps/web/.angular/issue-5-red.log`. Explained the eight tests individually: full UUID ascending before dates; newest start date within a repeated UUID; inclusive start-date lower bound; inclusive end-date upper bound; both dates plus selected status; clearing either/both filters; empty results and recovery; and opening the exact filtered event without losing filters/order. Explained that the tests use sample service responses and the real Angular component/template rather than reading CSV files or calling the backend. Source-array/value preservation is also asserted by the sorting and clearing tests.
+
+The recorded run executed 42 tests: 8 new failures and 34 existing passes. Test 1 expects `Zulu, Alpha` (full UUID order) but receives `Alpha, Zulu` (input order). Test 2 expects `Newest, Middle, Oldest` but receives `Oldest, Newest, Middle`. Current `filteredVehicles()` only applies status filtering and does not sort. Tests 3–8 fail at their first missing labelled date control; their later behavior assertions have not yet executed. The assertion fails before the guard returns, so those tests are failures, not skipped tests. Adding controls alone will not satisfy the complete test expectations.
+
+Highlighted the review contract: start date is an optional inclusive lower bound on CSV `start_date`, end date is an optional inclusive upper bound on CSV `end_date`, and both combine with AND. Neither compares the separate `time` field. UUID-primary ordering follows the user's selected R-2.1 precedence and is not global newest-first compliance with R-1.4.
+
+Clarified limits: these tests cover records supplied to the component, not sorting/filtering across all API pages. No API-search/2,000-record-limit tests were added because that proposal is ADR-only; no 250,000-record benchmark, two-second performance proof, new CSV validation tests or calendar-removal test is claimed. The calendar is already absent and its requirement departure is recorded in the shared ADR.
+
+**Validation and workflow:** This turn reviewed the existing test results; it did not rerun tests, change production/tests/ADR, build, stage or commit. Updated only this AI usage log and checked whitespace. Changes remain unstaged on `issue-5-requirement-conflict`. Reminded the user to review and manually commit the failing tests before production implementation, as required by §§8/16. No user approval or assessment was assumed.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
