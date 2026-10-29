@@ -1324,3 +1324,63 @@ _User to complete._
 ### 4. Where AI accelerated you vs where you overrode it
 
 _User to complete._
+
+## Entry 031 — 29 Oct 2026 — Update the Mermaid architecture diagram
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+now update the architecture diagram
+
+1. i wan it is a mermaid diagram
+2. should with 3 columns with 3 different layers: frontend, backend, and data
+3. match with point 10 in assignment.md
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Read assignment.md, AGENTS.md, the current architecture document and ADR; checked the actual CSV loader, service, API, frontend service/list, startup guard, audit model and Docker configuration. Updated docs/architecture.md to one Mermaid diagram with three distinct columns ordered frontend, backend and data. Removed obsolete planned issue #7 labels and documented the implemented ingestion validation, event provenance, safe Angular bindings, dev-only startup guard and controlled errors. Located source CSVs, in-memory event/audit state, server logs and configuration/secret sources in the data layer, explicitly noting that it is not a separate database service.
+
+Mapped §10's conflict decisions to their locations: frontend date search replaces calendar, status filters/paging remain local, and backend search orders UUID ascending then start date descending before the 2,000-event cap. Kept the R-4.5 history-access limitation, unmeasured R-3.3 target, in-memory audit limitation and deferred production identity/admin authorisation explicit; linked the shared ADR without changing its decisions.
+
+Validated syntax with Mermaid 11.17.2 and rendered in headless Chrome. Checked that all three layer bounds are ordered left-to-right and do not overlap, then visually inspected the rendered diagram. Adjusted wrapping and spacing for readability. The first preview check used an incorrect assumption about generated SVG IDs; corrected the temporary checker to handle Mermaid's diagram-ID prefix, then it passed. Preview tools/output were confined to the ignored starter/apps/web/.angular/architecture-preview folder; application dependencies were not changed. The first dependency download stalled under restricted access and was cancelled; the retry completed. No application tests or Docker builds/restarts were needed or run for this documentation change. Only architecture.md and this log were changed as repository deliverables; no staging, commits or external writes were performed.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 032 — 29 Oct 2026 — Improve architecture diagram colours
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+can change existing architecture.md, dun change any content, just wan u update the color, so able to read better in markdown preview
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Changed only colour styling in docs/architecture.md: pale blue, teal and amber layer backgrounds; white nodes with explicit dark text and stronger borders; and explicit dark label text on a light background. Preserved every label, description, connection, font setting and layout setting. Compared the before/after document excluding colour-only style declarations and verified unchanged content and non-colour configuration. Rendered with the existing temporary Mermaid/Chrome tooling, checked syntax and identical layer positions/sizes, and visually inspected light and dark preview backgrounds. Appended this required AI-log entry; left existing staged changes and the staged test-plan deletion untouched. No application code changes, dependency changes, tests, builds, staging or commits were made. Preview files remain in the existing ignored folder.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
