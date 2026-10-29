@@ -14,6 +14,8 @@ import { SELECTED_EVENT_KEY } from '../vehicle-detail/vehicle-detail-state';
 export class VehicleListComponent implements OnInit {
   vehicles: Vehicle[] = [];
   selectedStatuses: string[] = [];
+  startDateFilter = '';
+  endDateFilter = '';
   page = 0;
   popupMessage = '';
 
@@ -39,11 +41,15 @@ export class VehicleListComponent implements OnInit {
   }
 
   filteredVehicles(): Vehicle[] {
-    if (this.selectedStatuses.length === 0) {
-      return this.vehicles;
-    }
+    // Validated ISO dates compare chronologically without timezone conversion.
+    // filter creates a new array so sorting does not reorder the source events.
     return this.vehicles.filter((v) =>
-      this.selectedStatuses.every((s) => v.status === s),
+      this.selectedStatuses.every((s) => v.status === s) &&
+      (!this.startDateFilter || (v.startDate !== null && v.startDate >= this.startDateFilter)) &&
+      (!this.endDateFilter || (v.endDate !== null && v.endDate <= this.endDateFilter)),
+    ).sort((left, right) =>
+      left.uuid.localeCompare(right.uuid) ||
+      (right.startDate ?? '').localeCompare(left.startDate ?? ''),
     );
   }
 

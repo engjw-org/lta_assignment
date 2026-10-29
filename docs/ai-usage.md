@@ -943,3 +943,48 @@ _User to complete._
 ### 4. Where AI accelerated you vs where you overrode it
 
 _User to complete._
+
+## Entry 022 — 29 Oct 2026 — Implement issue #5 and run Docker
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+now implement issue 5 and make all unit tests pass, then build and run with docker, and 2000 record remain in ADR first
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Verified the clean issue branch `issue-5-requirement-conflict` and the user's failing-test commit `86b9bd1` (`add unit test and update ADR`) before production changes. It contains the eight issue #5 tests and documentation, with no production implementation. The earlier recorded run demonstrated all eight failures. The GitHub connector returned 404 for this private repository; verified issue #5, “Requirement conflicts,” remains open through the signed-in browser. No GitHub content was edited or posted.
+
+Implemented the reviewed scope in `vehicle-list.component.ts`, `.html` and `.css`: full UUID ascending, then start date descending within each UUID; optional inclusive start-date lower and end-date upper bounds; combination with the existing status filter; clearing either date; and preservation of source events and popup/list state. Date comparisons use validated ISO dates without timezone conversion. Filtering produces a new array before sorting. The inputs use Angular property/event bindings with associated labels, and the filter layout wraps. Added an empty-results message and a visible current-page scope notice.
+
+Updated the shared ADR's implementation status and current-page limitation. Preserved the user's sorting/calendar decisions, security/authentication stance and unresolved work. Server-side search and the proposed 2,000-record limit remain ADR-only: no API query/cap, backend or CSV changes. The application still has no calendar. Full-history sorting/filtering and the existing 49-record pagination defect remain unresolved; no complete issue #5 scale/performance compliance is claimed.
+
+**Actual tests and correction:**
+
+- First Angular implementation run: 41 passed, 1 failed. The filtered-popup test caught the start-date control displaying an empty value after `ngModel` initialization. Replaced the two `ngModel` bindings with direct property/input-event bindings and removed the unnecessary forms import. Kept the committed tests unchanged.
+- Final Angular command: `npm.cmd test -- --progress=false --code-coverage`, with Chrome configured. **42 tests passed**, exit 0. Overall measured line coverage is **91.2% (83/91)**; the changed list component has **82.35% (28/34)** line coverage. These measurements cover TypeScript, not CSS/layout or a performance benchmark.
+- Backend: ran `mvn -B -ntp -Dmaven.repo.local=/workspace/apps/api/target/maven-repository test` in the Java 21 Maven Docker image with the starter mounted at `/workspace`. **106 tests passed, 0 failures/errors/skipped**, exit 0, including CSV validation/dataset and detail lookup tests.
+- Local ignored evidence: `starter/apps/web/.angular/issue-5-green.log` (initial failure), `issue-5-green-final.log` (final pass), the frontend coverage report, and `starter/apps/api/target/issue-5-regression.log`.
+
+**Build and running-app verification:**
+
+Ran `docker compose up -d --build` from `starter/`; both images built and both containers started successfully. `docker compose ps` reported `starter-api-1` and `starter-web-1` running. Frontend `http://localhost:4200` and API `http://localhost:8080/api/vehicles?page=0` both returned HTTP 200; the API page contained 49 records. Build output is in the ignored `starter/apps/web/.angular/issue-5-docker.log`.
+
+Verified the running browser UI at 1280×720: setting the start bound to 1 Dec 2022 reduced 49 rows to three December matches; adding an end bound of 1 Jan 2022 showed the empty-results message; clearing the end bound restored three matches. No horizontal overflow was detected from DOM geometry. Clearing both restored 49 rows in full-UUID ascending order. Both date controls were empty afterward. Reset the temporary viewport override and left the app open. Browser screenshot capture timed out twice, so no screenshot artifact or visual screenshot inspection is claimed. This smoke check does not establish the 250,000-record/two-second requirement.
+
+**Workflow:** checked `git diff --check`; production changes, ADR and this log remain unstaged and uncommitted for manual review. No tests were weakened, and no stage/commit/push/merge was performed. The red-test commit remains intact for the required §8 history.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._

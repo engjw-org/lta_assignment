@@ -2,7 +2,7 @@
 
 ## Context
 
-VRLS2 extends the supplied Angular/Spring Boot starter, using four CSVs as the source of truth. [Issue #1](https://github.com/engjw/lta_assignment/issues/1) implements strict ingestion and date display. [Issue #3](https://github.com/engjw/lta_assignment/issues/3) implements safe, responsive vehicle-detail popups. [Issue #5](https://github.com/engjw/lta_assignment/issues/5) selects sorting and separate date filters for test-first development; server-side search remains a proposal.
+VRLS2 extends the supplied Angular/Spring Boot starter, using four CSVs as the source of truth. [Issue #1](https://github.com/engjw/lta_assignment/issues/1) implements strict ingestion and date display. [Issue #3](https://github.com/engjw/lta_assignment/issues/3) implements safe, responsive vehicle-detail popups. [Issue #5](https://github.com/engjw/lta_assignment/issues/5) implements UUID-first sorting and separate date filters on loaded list records; server-side search remains a proposal.
 
 ## Conflicts found in §5
 
@@ -16,7 +16,7 @@ Keep validated events in memory: eight CSV fields plus source-derived category, 
 
 Independent `currentpath/<vehicle-uuid>` popups match the clicked session snapshot against validated API events. Refresh restores a matching selection; otherwise show a sole event or chooser. Close preserves list state; details support 1280×720 and narrow screens.
 
-Issue #5 tests specify optional, inclusive `start_date >= Start date` and `end_date <= End date`, combined with AND and the status filter. These are separate date fields, not bounds on `start_date + time`; clearing restores the supplied events. Tests cover supplied list records only: current API pagination leaves full-history sorting/filtering unresolved.
+Issue #5 applies optional, inclusive `start_date >= Start date` and `end_date <= End date`, combined with AND and the status filter. These are separate date fields, not bounds on `start_date + time`; clearing restores the supplied events. The UI labels filtering/sorting as current-page operations: API pagination leaves full-history sorting/filtering unresolved.
 
 ## Security & threat model
 

@@ -1,5 +1,26 @@
 .filters {
   margin-bottom: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.filters input {
+  font: inherit;
+  padding: 6px 8px;
+}
+
+.filter-scope {
+  color: #555;
+  font-size: 14px;
 }
 
 .filters button.active {

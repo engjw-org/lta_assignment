@@ -14,7 +14,19 @@
     >
       Deregistered
     </button>
+    <label>
+      Start date (on or after)
+      <input #startDateInput type="date" [value]="startDateFilter"
+        (input)="startDateFilter = startDateInput.value">
+    </label>
+    <label>
+      End date (on or before)
+      <input #endDateInput type="date" [value]="endDateFilter"
+        (input)="endDateFilter = endDateInput.value">
+    </label>
   </div>
+
+  <p class="filter-scope">Filters and sorting apply to the current page.</p>
 
   <table>
     <thead>
@@ -40,6 +52,8 @@
       </tr>
     </tbody>
   </table>
+
+  <p *ngIf="filteredVehicles().length === 0" role="status">No matching records on this page.</p>
 
   <div class="pager">
     <button type="button" (click)="prevPage()" [disabled]="page === 0">Previous</button>
