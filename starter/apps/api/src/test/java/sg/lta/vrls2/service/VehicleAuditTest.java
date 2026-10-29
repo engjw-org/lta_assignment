@@ -106,7 +106,9 @@ class VehicleAuditTest {
         JsonNode record = route.equals("search") ? first.path("records").get(0)
                 : route.equals("single") ? first : first.get(0);
         assertAudit(record, "personal.csv", 2, before, afterLoad);
-        assertThat(record.path("audit")).isEqualTo(json.valueToTree(service.all().getFirst()).path("audit"));
+        // Compare wire values on both sides: an in-memory LongNode and parsed IntNode can represent the same row.
+        JsonNode ingested = json.readTree(json.writeValueAsString(service.all().getFirst()));
+        assertThat(record.path("audit")).isEqualTo(ingested.path("audit"));
         JsonNode repeated = json.readTree(mvc.perform(request).andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString());
         assertThat(repeated).as("serving does not regenerate the ingestion timestamp").isEqualTo(first);

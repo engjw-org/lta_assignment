@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { catchError, of, switchMap } from 'rxjs';
@@ -11,13 +12,13 @@ import { SELECTED_EVENT_KEY } from './vehicle-detail-state';
 @Component({
   selector: 'app-vehicle-detail-page',
   standalone: true,
-  imports: [CommonModule, VehicleDetailComponent],
+  imports: [CommonModule, FormsModule, VehicleDetailComponent],
   template: `
     <p *ngIf="loading" role="status">Loading vehicle details…</p>
     <p *ngIf="message" role="alert">{{ message }}</p>
     <div class="chooser" *ngIf="events.length > 1">
       <label for="event-choice">Choose a status event</label>
-      <select id="event-choice" [value]="selectedIndex" (change)="selectEvent($any($event.target).value)">
+      <select id="event-choice" [ngModel]="selectedIndex" (ngModelChange)="selectEvent($event)">
         <option value="" disabled>Select an event</option>
         <option *ngFor="let event of events; index as index" [value]="index">
           {{ index + 1 }}. {{ event.status }} · {{ event.startDate | date: 'dd MMM yyyy' }} · {{ event.time }} · {{ event.category }}
@@ -96,8 +97,20 @@ export class VehicleDetailPageComponent implements OnInit {
       const cached: unknown = JSON.parse(sessionStorage.getItem(SELECTED_EVENT_KEY) ?? 'null');
       if (!cached || typeof cached !== 'object') return -1;
       // Storage is only a selection hint. Render the validated API record, never stored fields.
-      return events.findIndex(event => (Object.keys(event) as (keyof Vehicle)[])
-        .every(key => event[key] === (cached as Partial<Vehicle>)[key]));
+      const saved = cached as Partial<Vehicle>;
+      return events.findIndex(event => {
+        const fieldsMatch = (Object.keys(event) as (keyof Vehicle)[])
+          .filter(key => key !== 'audit')
+          .every(key => event[key] === saved[key]);
+        if (!fieldsMatch) return false;
+        // JSON round-trips create new objects; compare the source reference and time by value.
+        const audit = event.audit;
+        return audit
+          ? audit.sourceFile === saved.audit?.sourceFile
+            && audit.sourceRow === saved.audit?.sourceRow
+            && audit.ingestedAt === saved.audit?.ingestedAt
+          : saved.audit == null;
+      });
     } catch {
       return -1;
     }

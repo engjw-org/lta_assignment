@@ -1256,3 +1256,71 @@ _User to complete._
 ### 4. Where AI accelerated you vs where you overrode it
 
 _User to complete._
+
+## Entry 029 — 29 Oct 2026 — Implement issue #7 and run Docker
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+now implement issue 7 and make all unit tests pass, update the ADR, then build and run with docker, dun do anything on architecture diagram first
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Read the assignment/agent instructions, verified `issue-7-security-check`, and inspected the user's committed red baseline `6d8fb8e` (tests/docs only). The authenticated Chrome browser confirmed GitHub issue #7 remained open after the connector returned 404. The only initial untracked file was `docs/architecture.md`; left it untouched and verified its SHA-256 stayed `DDCBD6C172F2A132F73CADFB08BEC49C5752691631EE2B3CD68EB58729576051`.
+
+Implemented immutable `VehicleAudit` metadata on each accepted CSV event: filename only, physical starting line and UTC ingestion instant captured after validation. The vehicle record carries it through all existing API paths without changing source CSV values. Retained the original constructor for callers creating records without CSV provenance; every real ingested event receives metadata. Added the Angular audit type, safe detail bindings and UTC date/time display. Popup restoration compares nested audit values and renders the matching API event; Angular forms binding restores the corresponding dropdown option.
+
+Added `DevelopmentAccessGuard`: only `dev` as the sole active profile may start. Production/default/mixed profiles remain blocked until real authentication/admin authorisation is implemented; setting credentials does not bypass this guard. Compose explicitly selects dev and binds both services to localhost. Updated the existing README's local startup command and explained the deployment limitation. No secrets or identity-provider stubs were added.
+
+Added `ApiError`, `ApiExceptionHandler` and `ApiErrorController` so controller and servlet errors return only fixed public code/message fields with appropriate status. Diagnostic exception details remain in server logs. Disabled default error-detail/whitelabel exposure and rejected negative/overflowing page indices before list access. Existing CSV validation, safe rendering, search/cap behaviour and detail routes remain covered.
+
+**Test changes and actual results:** Updated the original HTTP smoke test to explicitly use dev. Its assertions are unchanged. The dataset test still compares all original CSV/category fields; it ignores only the new runtime audit object, checked separately by audit tests. The first implementation run had **154 backend passes/four failures** and **59 Angular passes/one failure**. Backend failures compared Jackson LongNode/IntNode representations of identical JSON row values; corrected the test to JSON-round-trip both sides, keeping all audit value assertions. The Angular failure showed the restored event and dropdown were out of sync; fixed production binding. Added four servlet fallback tests to exercise safe responses outside controller advice.
+
+Final full runs: **162 backend tests passed, 0 failures/errors/skips; 60 Angular tests passed**. Backend ran with Java 21/Maven in Docker and JaCoCo. New audit/security/error classes have 100% measured line coverage; changed loader/controller classes cover 81/82 and 18/19 lines. Angular overall line coverage is 120/122 (98.36%); the changed detail-page component covers 50/51 (98.03%). Final logs are ignored `target/issue-7-security-green-final.log` and `.angular/issue-7-security-green-final.log`. Updated the concise six-section ADR to describe implemented controls while retaining the production identity closure plan and prior requirement departures. Updated the test-plan document with green results and the exact test adjustments; preserved the historical red evidence.
+
+**Docker and live verification:** Both images built. Initial Compose startup failed to bind web port 4200; no listening process was found, and retrying `docker compose up -d` started both services without stopping another process. API/web run at localhost ports 8080/4200. HTTP checks returned web 200, 226 searched events with audit metadata, controlled 400 for negative pagination and controlled 404 for an unknown route. A temporary production-profile API container with no published ports exited 1 with the explicit authentication guard error; it was removed automatically.
+
+The browser opened a real search result in its popup. Source file `deregpersonal.csv`, source row 2 and ingestion time remained unchanged after refresh. All 12 detail values fit within 1280×720 with no horizontal overflow. Screenshot capture timed out, so only DOM/layout verification is claimed. Reset the temporary viewport and left the working app/detail open. Production identity integration and the existing calendar/history-access/performance limitations remain as stated in the ADR. No architecture edits, staging, commits, pushes, merges or external GitHub writes were performed. Implementation is ready for manual review/commit.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 030 — 29 Oct 2026 — Summarise issue #7 changes
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+tell me the list of things you have add or update
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Reviewed the current issue #7 implementation diff, assignment instructions and previous validation record. Listed the additions and updates: immutable source filename/physical row/UTC ingestion metadata carried through APIs; safe detail display and value-based popup restoration with synchronised event chooser; startup restricted to the sole dev profile while production identity/admin authorisation remains deferred; controlled controller/servlet code-message errors, diagnostic suppression and invalid pagination rejection; explicit dev and localhost bindings in Compose; four extra servlet error tests and three existing test adjustments; and ADR, README, test-plan and AI-log updates.
+
+Reported the previous completed validation accurately: 162 backend and 60 Angular tests passed, Docker images built/services started, and the detail layout was checked at 1280×720. No tests, build, container restart or browser checks were repeated for this explanation. Explained the test adjustments: explicit dev for the HTTP smoke test, original CSV fields compared independently of runtime audit metadata, and JSON-normalised audit comparison to avoid a false integer-node mismatch. Architecture remains untouched. Existing staged implementation changes were observed and the index was left unchanged; this turn only appended this log entry. No code changes or commits were made.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._

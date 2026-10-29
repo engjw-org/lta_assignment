@@ -1,3 +1,9 @@
+export interface VehicleAudit {
+  sourceFile: string;
+  sourceRow: number;
+  ingestedAt: string;
+}
+
 export interface Vehicle {
   uuid: string;
   status: 'REGISTERED' | 'DEREGISTERED';
@@ -8,6 +14,7 @@ export interface Vehicle {
   brand: string;
   type: string;
   category: 'personal' | 'commercial';
+  audit?: VehicleAudit | null;
 }
 
 export interface VehicleSearchCriteria {

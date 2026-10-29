@@ -70,6 +70,8 @@ class VehicleCsvLoaderDatasetTest {
 
             assertAll(
                     () -> assertThat(actual).as("every field of every accepted row in %s", file)
+                            // Compare all original CSV/category fields; VehicleAuditTest checks runtime provenance.
+                            .usingRecursiveFieldByFieldElementComparatorIgnoringFields("audit")
                             .containsExactlyInAnyOrderElementsOf(expected),
                     () -> {
                         for (int line : rejectedLines) {

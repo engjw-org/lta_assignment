@@ -13,5 +13,10 @@
     <div><dt>User UUID</dt><dd>{{ record.userUuid }}</dd></div>
     <div><dt>Brand</dt><dd>{{ record.brand }}</dd></div>
     <div><dt>Type</dt><dd>{{ record.type }}</dd></div>
+    <ng-container *ngIf="record.audit as audit">
+      <div><dt>Source file</dt><dd>{{ audit.sourceFile }}</dd></div>
+      <div><dt>Source row</dt><dd>{{ audit.sourceRow }}</dd></div>
+      <div><dt>Ingested at</dt><dd>{{ audit.ingestedAt | date: 'dd MMM yyyy HH:mm:ss' : 'UTC' }} UTC</dd></div>
+    </ng-container>
   </dl>
 </section>

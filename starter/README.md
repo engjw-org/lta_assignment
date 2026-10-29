@@ -13,6 +13,8 @@ docker compose up --build
 - Frontend: <http://localhost:4200>
 - API: <http://localhost:8080/api/vehicles>
 
+Compose explicitly selects the local `dev` profile and binds both ports to localhost. This profile allows anonymous access for the exercise. Other profiles (including default and mixed `prod,dev`) refuse startup until production authentication and admin authorisation are implemented; supplying credentials alone does not enable production mode.
+
 ## Local toolchain
 
 If you prefer running without Docker:
@@ -26,7 +28,7 @@ If you prefer running without Docker:
 **Backend**
 ```bash
 cd apps/api
-mvn spring-boot:run
+mvn "-Dspring-boot.run.profiles=dev" spring-boot:run
 ```
 
 **Frontend** (in a separate terminal)
