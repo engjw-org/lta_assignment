@@ -2,12 +2,12 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { VehicleService } from '../vehicle.service';
 import { Vehicle } from '../vehicle.model';
-import { VehicleDetailComponent } from '../vehicle-detail/vehicle-detail.component';
+import { SELECTED_EVENT_KEY } from '../vehicle-detail/vehicle-detail-state';
 
 @Component({
   selector: 'app-vehicle-list',
   standalone: true,
-  imports: [CommonModule, VehicleDetailComponent],
+  imports: [CommonModule],
   templateUrl: './vehicle-list.component.html',
   styleUrls: ['./vehicle-list.component.css'],
 })
@@ -15,7 +15,7 @@ export class VehicleListComponent implements OnInit {
   vehicles: Vehicle[] = [];
   selectedStatuses: string[] = [];
   page = 0;
-  selected: Vehicle | null = null;
+  popupMessage = '';
 
   constructor(private vehicleService: VehicleService) {}
 
@@ -60,10 +60,20 @@ export class VehicleListComponent implements OnInit {
   }
 
   open(vehicle: Vehicle): void {
-    this.selected = vehicle;
-  }
-
-  close(): void {
-    this.selected = null;
+    this.popupMessage = '';
+    const path = `${window.location.pathname.replace(/\/$/, '')}/${encodeURIComponent(vehicle.uuid)}`;
+    const popup = window.open(path, '_blank', 'popup,width=1100,height=640,resizable=yes,scrollbars=yes');
+    if (!popup) {
+      this.popupMessage = 'The popup was blocked. Allow popups for this site, then open the vehicle again.';
+      return;
+    }
+    try {
+      // The initial same-origin window is available before its navigation completes.
+      popup.sessionStorage.setItem(SELECTED_EVENT_KEY, JSON.stringify(vehicle));
+      popup.opener = null;
+    } catch {
+      popup.close();
+      this.popupMessage = 'Unable to pass the selected event to the popup. Allow browser storage and try again.';
+    }
   }
 }

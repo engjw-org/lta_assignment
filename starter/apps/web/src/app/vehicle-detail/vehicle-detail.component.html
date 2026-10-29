@@ -1,0 +1,17 @@
+<section class="detail" aria-label="Vehicle details" *ngIf="vehicle as record">
+  <header>
+    <h2>Vehicle details</h2>
+    <button type="button" (click)="close.emit()">Close</button>
+  </header>
+  <dl class="detail-grid">
+    <div><dt>UUID</dt><dd>{{ record.uuid }}</dd></div>
+    <div><dt>Status</dt><dd class="status">{{ record.status }}</dd></div>
+    <div><dt>Category</dt><dd>{{ record.category }}</dd></div>
+    <div><dt>Start date</dt><dd>{{ (record.startDate | date: 'dd MMM yyyy') || 'Not provided' }}</dd></div>
+    <div><dt>End date</dt><dd>{{ (record.endDate | date: 'dd MMM yyyy') || 'Not provided' }}</dd></div>
+    <div><dt>Time</dt><dd>{{ record.time || 'Not provided' }}</dd></div>
+    <div><dt>User UUID</dt><dd>{{ record.userUuid }}</dd></div>
+    <div><dt>Brand</dt><dd>{{ record.brand }}</dd></div>
+    <div><dt>Type</dt><dd>{{ record.type }}</dd></div>
+  </dl>
+</section>

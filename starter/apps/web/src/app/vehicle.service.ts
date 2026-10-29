@@ -9,8 +9,9 @@ export class VehicleService {
 
   constructor(private http: HttpClient) {}
 
-  list(page: number): Observable<Vehicle[]> {
-    return this.http.get<Vehicle[]>(`${this.baseUrl}?page=${page}`);
+  list(page: number, uuid?: string): Observable<Vehicle[]> {
+    const lookup = uuid === undefined ? '' : `&uuid=${encodeURIComponent(uuid)}`;
+    return this.http.get<Vehicle[]>(`${this.baseUrl}?page=${page}${lookup}`);
   }
 
   getOne(uuid: string): Observable<Vehicle> {

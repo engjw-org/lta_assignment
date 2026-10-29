@@ -27,8 +27,15 @@ public class VehicleController {
     }
 
     @GetMapping
-    public List<Vehicle> list(@RequestParam(defaultValue = "0") int page) {
+    public List<Vehicle> list(@RequestParam(defaultValue = "0") int page,
+                              @RequestParam(required = false) String uuid) {
         List<Vehicle> all = vehicleService.all();
+        if (uuid != null) {
+            if (!uuid.matches("(?i)^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$")) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid vehicle UUID");
+            }
+            return all.stream().filter(vehicle -> vehicle.uuid().equals(uuid)).toList();
+        }
         int start = page * PAGE_SIZE;
         if (start >= all.size()) {
             return List.of();
