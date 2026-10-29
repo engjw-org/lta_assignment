@@ -1109,3 +1109,39 @@ _User to complete._
 ### 4. Where AI accelerated you vs where you overrode it
 
 _User to complete._
+
+## Entry 026 — 29 Oct 2026 — Implement submitted search and the 2,000-record cap
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+now implement the search function and 2000 records limit, make all unit tests pass, then build and run with docker
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Verified open GitHub issue #5, branch `issue-5-requirement-conflict`, and failing-test commit `9955551` before implementation (§§8/16). The GitHub connector could not access the private repository; the authenticated browser confirmed the issue was open. No tests were changed to make them pass.
+
+Added `VehicleSearchCriteria` and `VehicleSearchResult`, the POST search controller route, and matching/sorting/capping in the backend `VehicleService`. All optional criteria are combined before sorting by full UUID ascending/start date descending and returning at most 2,000 events with `totalMatches` and `truncated`. Query matching is trimmed, case-insensitive UUID prefix or brand substring; seat type is exact; separate CSV start/end date bounds are inclusive. JSON field types, real ISO dates, and query/type lengths are validated. Source events and uncapped detail lookups are preserved.
+
+Updated the Angular vehicle model/service and list component/template/styles. No records load until Search; blank Search requests all matches subject to the cap. Four search fields occupy the first row, Search the second, and local status filters follow. Draft edits wait for submission. Status filtering operates across returned records before 50-row pagination, both statuses includes both, and searches/status changes reset the page. Added the total/refine-search notice, loading/duplicate-submit protection, empty/error states and responsive layout; retained safe bindings and exact-event popup behavior. Updated the existing six-section ADR to describe the implementation and retain its requirement departures and security/authentication stance.
+
+**Validation:** Maven tests ran in the Java 21 Maven Docker image: **127 passed, 0 failed/errors/skipped**, including 21 search cases and the existing CSV/detail suites. Angular tests: **50 passed**, with 98.27% overall measured line coverage and 100% list-component TypeScript line coverage. JaCoCo line coverage for changed backend classes: controller 14/17, service 22/23, search criteria 18/20, response 1/1. The committed tests cover the 1,999/2,000/2,001 boundaries, filter/sort-before-cap behavior and malformed input. No failing assertions were weakened.
+
+`docker compose up -d --build` completed; both API and web containers are running on ports 8080 and 4200. Live HTTP checks confirmed web status 200 and blank Search returned 226 valid events, totalMatches 226, truncated false. Browser checks at 1280×720 confirmed no initial rows, 50 rows/page, unchanged results while editing criteria, a four-field Toyota/5-seat search returning 68 events, 18 rows on its second page, and Registered filtering to 39 events with a page reset. No horizontal overflow was observed. Screenshot capture timed out, so no screenshot proof is claimed; browser DOM verification succeeded. Reset the viewport override and left the app open at `http://localhost:4200/`.
+
+**Limits and review:** The supplied dataset is below the cap; automated fixtures verify truncation. The 250,000-record/two-second benchmark and outstanding security work in the ADR remain unverified/unimplemented. Server search departs from R-3.1, and the chosen hard cap limits R-4.5 history access. All prepared changes remain unstaged and uncommitted for the user's review and manual commit; no GitHub writes were made.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
