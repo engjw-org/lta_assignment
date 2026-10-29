@@ -11,11 +11,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import sg.lta.vrls2.model.Vehicle;
+import sg.lta.vrls2.model.VehicleAudit;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -132,7 +134,8 @@ public class VehicleCsvLoader {
             reject(path, sourceRow, "time", "Expected a 24-hour time in HH:mm:ss format");
             return null;
         }
-        return new Vehicle(row[0], row[1], dates[0], dates[1], time, row[5], row[6], row[7], category);
+        return new Vehicle(row[0], row[1], dates[0], dates[1], time, row[5], row[6], row[7], category,
+                new VehicleAudit(path.getFileName().toString(), sourceRow, Instant.now()));
     }
 
     private static boolean isWhitespace(int codePoint) {

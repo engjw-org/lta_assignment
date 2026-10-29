@@ -13,6 +13,8 @@ docker compose up --build
 - Frontend: <http://localhost:4200>
 - API: <http://localhost:8080/api/vehicles>
 
+Compose explicitly selects the local `dev` profile and binds both ports to localhost. This profile allows anonymous access for the exercise. Other profiles (including default and mixed `prod,dev`) refuse startup until production authentication and admin authorisation are implemented; supplying credentials alone does not enable production mode.
+
 ## Local toolchain
 
 If you prefer running without Docker:
@@ -26,7 +28,7 @@ If you prefer running without Docker:
 **Backend**
 ```bash
 cd apps/api
-mvn spring-boot:run
+mvn "-Dspring-boot.run.profiles=dev" spring-boot:run
 ```
 
 **Frontend** (in a separate terminal)
@@ -87,6 +89,12 @@ docker compose ps
 Alternatively, combine the build and startup with `docker compose up -d --build`.
 
 Refresh <http://localhost:4200> after both services start. These containers serve built images, so saving source files or only restarting containers does not rebuild the application. Docker builds do not replace the test steps above: the API Dockerfile skips test execution, and the web Dockerfile builds without running Angular tests.
+
+## Demo recording
+
+[Watch the captioned demo (4 min 1 sec)](https://drive.google.com/file/d/10T1qCefU_wUiN7DizVeRpHRZI4k1i4PD/view?usp=sharing)
+
+Shows the running local app, search and filters, detail popups, audit information, live API error checks, saved test results, architecture and documented limitations.
 
 ## Data
 

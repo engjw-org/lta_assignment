@@ -1145,3 +1145,302 @@ _User to complete._
 ### 4. Where AI accelerated you vs where you overrode it
 
 _User to complete._
+
+## Entry 027 — 29 Oct 2026 — Issue #7 audit and security tests first
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+1. Problem statement — what is wrong or missing, in user-visible terms
+- missing R-6.4 audit check
+- after manually check on the security requirement, no other issue found, but will add unit test on it
+
+2. Root cause hypothesis — your best current theory (you may be wrong; that is fine, update the issue when you learn more)
+
+3. Acceptance criteria — specific, testable conditions that mean the issue is resolved
+- add audit check based on R-6.4
+- make sure all existing code pass the security check
+- pass unit test
+- with one architecture diagram
+
+4. Requirement reference — which R-x.y this maps to, or discovered-defect if it does not map to a stated requirement
+R-6.1 All ingested CSV rows must be validated before any field reaches persistence or the client. At
+minimum: field presence, type, length bounds, and value allow-lists where applicable (e.g. status
+∈ {REGISTERED, DEREGISTERED}). Malformed rows must be rejected or quarantined with a
+structured log entry — silent “sanitisation” that rewrites input is not acceptable. (Intersects with R-
+5.3.)
+R-6.2 All user-supplied fields (uuid, brand, type, user_uuid) must be rendered using
+Angular’s safe-binding primitives (interpolation, property binding). Do not use innerHTML on
+untrusted data; DomSanitizer.bypassSecurityTrust* is acceptable only with a
+documented justification.
+R-6.3 The admin API must not be anonymously accessible in production. Declare your
+authentication and authorisation stance in the ADR — full JWT, session cookie, or a dev-only
+bypass with a documented production closure plan. “Stub”, “TODO”, or leaving the endpoint
+open with no plan is not a stance and is a failing answer.
+R-6.4 The ingestion and serving paths must be auditable: any displayed record must be traceable to
+its source row and its ingestion time. In-memory auditability is acceptable for this exercise. If you
+introduce persistence, the audit trail must persist alongside the data. (Intersects with R-4.5.)
+R-6.5 No secrets in the repository. Configuration (DB credentials, API keys, signing keys) must
+come from environment variables or mounted files. docker-compose.yml must not hardcode
+production-shaped credentials.
+R-6.6 Server error responses must not leak stack traces, internal paths, or framework versions. Use a
+controlled error envelope.
+
+based on my issue above, update on my issue 7 branch
+
+1. plan and add the audit feature unit test
+2. add other security missing unit test
+3. add the new thing ADR if you think should add
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Read the assignment and agent instructions. Verified a clean `issue-7-security-check` branch at `5241244` (issue #5 merged). The GitHub connector returned 404 and the in-app browser was signed out; authenticated Chrome confirmed issue #7, “Check on security implementation”, was open with the user's supplied scope. No GitHub content was edited. Reminded the user of §§8/16: tests must be reviewed and manually committed before production implementation.
+
+Prepared `docs/issue-7-test-plan.md` with a requirement-to-test matrix and proposed contracts. Added five backend test classes: `VehicleAuditTest` (11 cases), `ApiErrorSecurityTest` (12), `ProductionAccessPolicyTest` (4), `CsvSecurityBoundaryTest` (1), and `RepositorySecurityPolicyTest` (3). Added `vehicle-audit.spec.ts` and `vehicle-list.security.spec.ts` (10 Angular cases). Existing tests and all production/configuration files remain unchanged.
+
+R-6.4 tests specify `audit: {sourceFile, sourceRow, ingestedAt}` on each accepted event: basename, one-based physical starting line including the header, and a UTC ISO ingestion instant. Cover all four CSVs, identical/cross-file events, a rejected multiline row, every serving route, stable metadata across requests, and source association after sorting/capping. Angular tests require labelled audit display with UTC, safe text rendering, full popup handoff, exact duplicate restoration after JSON round-trip, and rejection of modified/stale cached audit values. These are proposed implementation contracts for review, not completed audit functionality.
+
+The review found more than missing R-6.4 metadata: there is no executable production startup guard and no application-defined error envelope. The R-6.3 tests extend the existing ADR's dev-only stance: explicit dev may start anonymously, while default/prod/mixed prod+dev must refuse startup without authentication. Identity integration and admin-role enforcement remain a production closure plan. R-6.6 tests exercise real HTTP error dispatch, including malformed input, missing resources, unexpected failures and negative pagination; they require generic `code/message` responses. Other new checks cover forged CSV log input, list safe binding, prohibited HTML bypasses and scoped credential patterns/configuration. They are regression checks, not a full security certification or history secret scan.
+
+**Actual validation:** Full Maven run in the existing Java 21 Docker image: **158 tests, 132 passed, 26 failed, 0 errors/skipped**. The 26 failures are 11 missing-audit assertions, 12 error-envelope/status cases, and three applications starting when the proposed production policy requires refusal. The default error body contains `timestamp/status/error/path`; negative pagination returns 500 instead of 400. Do not infer that every response leaked a stack trace. After strengthening the audit sort/cap fixture, reran its 11 cases: 11 failures on missing audit metadata, no errors/skips. Angular: **60 tests, 57 passed, three failed**—missing audit labels/values, absent audit-source text, and duplicate selection not restored because nested objects are compared by identity. All original 127 backend and 50 Angular tests pass; seven new Angular and five new backend checks already pass. Tests compile; assertions beyond each first failure remain unverified.
+
+Updated the shared ADR's six required sections, retaining prior decisions and security/authentication stance while marking issue #7 controls planned. Added one Mermaid diagram in `docs/architecture.md` showing actual ingestion/API/browser paths, security boundaries, requirement trade-offs, and explicitly labelled planned controls. R-6.4 provenance does not remove the existing 2,000-result R-4.5 limitation. No production code was added, containers rebuilt/restarted, files staged, commits created, or implementation claimed. Changes are prepared for user review and manual failing-test commit.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 028 — 29 Oct 2026 — Explain issue #7 tests before manual commit
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+explain the unit tests you added for issue 7 and why they fail, so i can review before manually committing
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Reviewed the seven issue #7 test files, production popup matching, test plan and saved full/targeted run results. Explained the 41 added cases: 31 backend (26 failing, five passing) and ten Angular (three failing, seven passing). The saved full-suite results remain backend 132 passes/26 failures and Angular 57 passes/three failures; all original 127 backend and 50 Angular cases passed. No tests were rerun during this explanation.
+
+Explained the 11 backend audit cases: four CSV sources; identical/cross-file duplicates; physical line numbering after a rejected multiline row; list, UUID-history, single-record and search serving paths; and retaining correct source references after sorting/capping 2,001 events. Each currently stops at missing `audit` metadata. Later timestamp/row/preservation assertions are specified but not yet verified. The proposed fields are basename `sourceFile`, one-based physical `sourceRow` including the header, and UTC ISO `ingestedAt` captured at ingestion, not the CSV event time or each request.
+
+Explained the three Angular failures: absent audit labels/values, absent audit-source text in the safe-binding test (not an executed XSS exploit), and failure to restore identical vehicle events after JSON round-trip because the nested audit object is compared by reference. The four passing audit-route cases check changed/stale cached references and explicit API-event selection; passing negative cases alone does not establish correct restoration while the positive case is red. Three additional list tests pass for UUID/type safe rendering and complete audit popup handoff with a detached opener.
+
+Explained the 12 HTTP error cases: nine invalid/missing/unsupported requests and three simulated unexpected failures across list/single/search. Current responses use the default `timestamp/status/error/path` structure rather than proposed `code/message`; negative pagination returns 500 rather than 400, and an unknown-route response echoes its diagnostic request-path marker. This is not evidence that all responses expose internal filesystem paths or stack traces. Actual HTTP dispatch is used to include Spring Boot error handling.
+
+Explained the four startup-policy cases: explicit dev succeeds; default, prod and mixed prod+dev wrongly start under the proposed refusal policy, so those three fail. These tests enforce the ADR's dev-only stance without implementing a production identity provider; local launch configuration will need explicit dev when implemented. The remaining backend checks already pass: forged multiline log input is rejected without raw-value/path disclosure, and three source/configuration policy checks cover credential signatures/literals and HTML/sanitiser bypasses. Their passing result is scoped and does not certify the whole repository/history or security posture.
+
+Highlighted review choices beyond the high-level requirements: nested audit names, physical row convention, UTC timestamp/display, exact two-field error contract, and refusing unauthenticated startup outside explicit dev. No production/tests/ADR/diagram were changed in this turn; appended only this AI-log entry. Work remains unstaged on `issue-7-security-check`. Reminded the user to review and manually commit the failing tests before implementation (§§8/16); no acceptance, staging or commit was inferred.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 029 — 29 Oct 2026 — Implement issue #7 and run Docker
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+now implement issue 7 and make all unit tests pass, update the ADR, then build and run with docker, dun do anything on architecture diagram first
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Read the assignment/agent instructions, verified `issue-7-security-check`, and inspected the user's committed red baseline `6d8fb8e` (tests/docs only). The authenticated Chrome browser confirmed GitHub issue #7 remained open after the connector returned 404. The only initial untracked file was `docs/architecture.md`; left it untouched and verified its SHA-256 stayed `DDCBD6C172F2A132F73CADFB08BEC49C5752691631EE2B3CD68EB58729576051`.
+
+Implemented immutable `VehicleAudit` metadata on each accepted CSV event: filename only, physical starting line and UTC ingestion instant captured after validation. The vehicle record carries it through all existing API paths without changing source CSV values. Retained the original constructor for callers creating records without CSV provenance; every real ingested event receives metadata. Added the Angular audit type, safe detail bindings and UTC date/time display. Popup restoration compares nested audit values and renders the matching API event; Angular forms binding restores the corresponding dropdown option.
+
+Added `DevelopmentAccessGuard`: only `dev` as the sole active profile may start. Production/default/mixed profiles remain blocked until real authentication/admin authorisation is implemented; setting credentials does not bypass this guard. Compose explicitly selects dev and binds both services to localhost. Updated the existing README's local startup command and explained the deployment limitation. No secrets or identity-provider stubs were added.
+
+Added `ApiError`, `ApiExceptionHandler` and `ApiErrorController` so controller and servlet errors return only fixed public code/message fields with appropriate status. Diagnostic exception details remain in server logs. Disabled default error-detail/whitelabel exposure and rejected negative/overflowing page indices before list access. Existing CSV validation, safe rendering, search/cap behaviour and detail routes remain covered.
+
+**Test changes and actual results:** Updated the original HTTP smoke test to explicitly use dev. Its assertions are unchanged. The dataset test still compares all original CSV/category fields; it ignores only the new runtime audit object, checked separately by audit tests. The first implementation run had **154 backend passes/four failures** and **59 Angular passes/one failure**. Backend failures compared Jackson LongNode/IntNode representations of identical JSON row values; corrected the test to JSON-round-trip both sides, keeping all audit value assertions. The Angular failure showed the restored event and dropdown were out of sync; fixed production binding. Added four servlet fallback tests to exercise safe responses outside controller advice.
+
+Final full runs: **162 backend tests passed, 0 failures/errors/skips; 60 Angular tests passed**. Backend ran with Java 21/Maven in Docker and JaCoCo. New audit/security/error classes have 100% measured line coverage; changed loader/controller classes cover 81/82 and 18/19 lines. Angular overall line coverage is 120/122 (98.36%); the changed detail-page component covers 50/51 (98.03%). Final logs are ignored `target/issue-7-security-green-final.log` and `.angular/issue-7-security-green-final.log`. Updated the concise six-section ADR to describe implemented controls while retaining the production identity closure plan and prior requirement departures. Updated the test-plan document with green results and the exact test adjustments; preserved the historical red evidence.
+
+**Docker and live verification:** Both images built. Initial Compose startup failed to bind web port 4200; no listening process was found, and retrying `docker compose up -d` started both services without stopping another process. API/web run at localhost ports 8080/4200. HTTP checks returned web 200, 226 searched events with audit metadata, controlled 400 for negative pagination and controlled 404 for an unknown route. A temporary production-profile API container with no published ports exited 1 with the explicit authentication guard error; it was removed automatically.
+
+The browser opened a real search result in its popup. Source file `deregpersonal.csv`, source row 2 and ingestion time remained unchanged after refresh. All 12 detail values fit within 1280×720 with no horizontal overflow. Screenshot capture timed out, so only DOM/layout verification is claimed. Reset the temporary viewport and left the working app/detail open. Production identity integration and the existing calendar/history-access/performance limitations remain as stated in the ADR. No architecture edits, staging, commits, pushes, merges or external GitHub writes were performed. Implementation is ready for manual review/commit.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 030 — 29 Oct 2026 — Summarise issue #7 changes
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+tell me the list of things you have add or update
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Reviewed the current issue #7 implementation diff, assignment instructions and previous validation record. Listed the additions and updates: immutable source filename/physical row/UTC ingestion metadata carried through APIs; safe detail display and value-based popup restoration with synchronised event chooser; startup restricted to the sole dev profile while production identity/admin authorisation remains deferred; controlled controller/servlet code-message errors, diagnostic suppression and invalid pagination rejection; explicit dev and localhost bindings in Compose; four extra servlet error tests and three existing test adjustments; and ADR, README, test-plan and AI-log updates.
+
+Reported the previous completed validation accurately: 162 backend and 60 Angular tests passed, Docker images built/services started, and the detail layout was checked at 1280×720. No tests, build, container restart or browser checks were repeated for this explanation. Explained the test adjustments: explicit dev for the HTTP smoke test, original CSV fields compared independently of runtime audit metadata, and JSON-normalised audit comparison to avoid a false integer-node mismatch. Architecture remains untouched. Existing staged implementation changes were observed and the index was left unchanged; this turn only appended this log entry. No code changes or commits were made.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 031 — 29 Oct 2026 — Update the Mermaid architecture diagram
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+now update the architecture diagram
+
+1. i wan it is a mermaid diagram
+2. should with 3 columns with 3 different layers: frontend, backend, and data
+3. match with point 10 in assignment.md
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Read assignment.md, AGENTS.md, the current architecture document and ADR; checked the actual CSV loader, service, API, frontend service/list, startup guard, audit model and Docker configuration. Updated docs/architecture.md to one Mermaid diagram with three distinct columns ordered frontend, backend and data. Removed obsolete planned issue #7 labels and documented the implemented ingestion validation, event provenance, safe Angular bindings, dev-only startup guard and controlled errors. Located source CSVs, in-memory event/audit state, server logs and configuration/secret sources in the data layer, explicitly noting that it is not a separate database service.
+
+Mapped §10's conflict decisions to their locations: frontend date search replaces calendar, status filters/paging remain local, and backend search orders UUID ascending then start date descending before the 2,000-event cap. Kept the R-4.5 history-access limitation, unmeasured R-3.3 target, in-memory audit limitation and deferred production identity/admin authorisation explicit; linked the shared ADR without changing its decisions.
+
+Validated syntax with Mermaid 11.17.2 and rendered in headless Chrome. Checked that all three layer bounds are ordered left-to-right and do not overlap, then visually inspected the rendered diagram. Adjusted wrapping and spacing for readability. The first preview check used an incorrect assumption about generated SVG IDs; corrected the temporary checker to handle Mermaid's diagram-ID prefix, then it passed. Preview tools/output were confined to the ignored starter/apps/web/.angular/architecture-preview folder; application dependencies were not changed. The first dependency download stalled under restricted access and was cancelled; the retry completed. No application tests or Docker builds/restarts were needed or run for this documentation change. Only architecture.md and this log were changed as repository deliverables; no staging, commits or external writes were performed.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 032 — 29 Oct 2026 — Improve architecture diagram colours
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+can change existing architecture.md, dun change any content, just wan u update the color, so able to read better in markdown preview
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Changed only colour styling in docs/architecture.md: pale blue, teal and amber layer backgrounds; white nodes with explicit dark text and stronger borders; and explicit dark label text on a light background. Preserved every label, description, connection, font setting and layout setting. Compared the before/after document excluding colour-only style declarations and verified unchanged content and non-colour configuration. Rendered with the existing temporary Mermaid/Chrome tooling, checked syntax and identical layer positions/sizes, and visually inspected light and dark preview backgrounds. Appended this required AI-log entry; left existing staged changes and the staged test-plan deletion untouched. No application code changes, dependency changes, tests, builds, staging or commits were made. Preview files remain in the existing ignored folder.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 033 — 29 Oct 2026 — Prepare the assignment demo
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+can help me do the demo video
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Read the assignment's five-minute demo limit and README-link deliverable, repository instructions and current documentation. Confirmed both local Docker services were running and inspected the available application records, UI and saved test evidence. Asked whether the user wanted a captioned recording, a script for their own narration, or a synthetic voiceover. The user selected a captioned screen recording; execution and validation are recorded in Entry 034. Planned the walkthrough around actual app behaviour and labelled supporting evidence, with no claim that the small supplied dataset demonstrates the 2,000-record cap or the scale/performance target.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 034 — 29 Oct 2026 — Create the captioned demo recording
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+Question: "For the assignment’s ≤5-minute demo, which format would you prefer?"
+
+```text
+Create a screen recording with captions
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Created docs/demo/vrls2-demo.mp4 and the editable subtitle file docs/demo/vrls2-demo.srt. The silent recording is 240.75 seconds (about 4 min 1 sec), 1280×864, H.264 at 24 fps, and 3,338,306 bytes. The actual application viewport was 1280×720; chapter headings and twenty caption segments were added in separate bands above/below it so no application content is obscured. Added relative links to the video and captions in starter/README.md.
+
+Captured the real running Docker app in an isolated local Chrome session. Demonstrated the initially empty list, blank search returning 226 events, date display, 50-event paging, local status filters, typing before submitting, Toyota search (102 matches), combined Toyota/5-seat/date criteria (68 matches), UUID-prefix search, all twelve detail values, refresh preserving the exact audit values, closing back to the same list, and two independently open vehicle popups. Did not inject synthetic data, mock responses, alter the CSVs or modify application code.
+
+Supporting scenes are explicitly labelled demo notes/documentation/saved evidence. The error scene uses freshly requested real HTTP 400 and 404 code/message responses. Test evidence was checked against existing saved Maven/Angular logs (162 backend and 60 Angular passes); it is clearly labelled a saved 29 Oct 2026 run, not a newly executed suite. Local Git history confirms the displayed red commit 6d8fb8e precedes implementation commit 8fc610d. Rendered the existing Mermaid source for the architecture scene. Included the ADR's server-search/calendar departures, the 2,000-cap history-access limitation, deferred production identity/admin roles and unmeasured scale/timing target. The supplied 226-event data does not trigger the cap, and the recording makes no claim to demonstrate that state or the multi-event chooser.
+
+Used temporary recording/encoding helpers and a downloaded imageio-ffmpeg encoder under the existing ignored .angular directory; application dependencies remain unchanged. Decoded the entire completed MP4 successfully, checked its duration/resolution and visually inspected nine representative encoded frames for layout and readable captions. Preserved the app's running containers and closed only the isolated recording browser. No tests, application rebuilds, production changes, staging, commits, uploads or public sharing were performed. The video is ready for the user's review; no submission or acceptance is claimed.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._

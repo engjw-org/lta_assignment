@@ -38,6 +38,9 @@ public class VehicleController {
     @GetMapping
     public List<Vehicle> list(@RequestParam(defaultValue = "0") int page,
                               @RequestParam(required = false) String uuid) {
+        if (page < 0 || page > Integer.MAX_VALUE / PAGE_SIZE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid page number");
+        }
         List<Vehicle> all = vehicleService.all();
         if (uuid != null) {
             if (!uuid.matches("(?i)^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$")) {
