@@ -3,12 +3,16 @@ package sg.lta.vrls2.controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.http.HttpStatus;
 import sg.lta.vrls2.model.Vehicle;
+import sg.lta.vrls2.model.VehicleSearchCriteria;
+import sg.lta.vrls2.model.VehicleSearchResult;
 import sg.lta.vrls2.service.VehicleService;
 
 import java.util.List;
@@ -24,6 +28,11 @@ public class VehicleController {
 
     public VehicleController(VehicleService vehicleService) {
         this.vehicleService = vehicleService;
+    }
+
+    @PostMapping("/search")
+    public VehicleSearchResult search(@RequestBody VehicleSearchCriteria criteria) {
+        return vehicleService.search(criteria);
     }
 
     @GetMapping

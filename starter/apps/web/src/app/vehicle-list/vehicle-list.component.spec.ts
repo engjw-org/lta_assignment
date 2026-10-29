@@ -1,21 +1,13 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
 import { Vehicle } from '../vehicle.model';
-import { VehicleService } from '../vehicle.service';
-import { VehicleListComponent } from './vehicle-list.component';
+import { createSearchHarness, SearchHarness, showSearchResults } from './vehicle-list.search-test-support.spec';
 
 describe('Issue #1: list start-date display (R-2.3)', () => {
-  let fixture: ComponentFixture<VehicleListComponent>;
-  let service: jasmine.SpyObj<VehicleService>;
+  let h: SearchHarness;
 
   beforeEach(async () => {
-    service = jasmine.createSpyObj<VehicleService>('VehicleService', ['list']);
-    await TestBed.configureTestingModule({
-      imports: [VehicleListComponent],
-      providers: [{ provide: VehicleService, useValue: service }],
-    }).compileComponents();
-    fixture = TestBed.createComponent(VehicleListComponent);
+    h = await createSearchHarness();
   });
+  afterEach(() => h.http.verify());
 
   for (const [input, expected] of [
     ['2026-04-08', '08 Apr 2026'],
@@ -33,11 +25,9 @@ describe('Issue #1: list start-date display (R-2.3)', () => {
         type: '5-seat',
         category: 'personal',
       };
-      service.list.and.returnValue(of([vehicle]));
+      if (!showSearchResults(h, [vehicle])) return;
 
-      fixture.detectChanges();
-
-      const table: HTMLTableElement = fixture.nativeElement.querySelector('table');
+      const table: HTMLTableElement = h.fixture.nativeElement.querySelector('table');
       const dateColumn = Array.from(table.querySelectorAll('thead th'))
         .findIndex((heading) => heading.textContent?.trim() === 'Start Date');
       expect(dateColumn).toBeGreaterThanOrEqual(0);

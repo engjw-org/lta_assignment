@@ -1,25 +1,21 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { ComponentFixture } from '@angular/core/testing';
 import { detailVehicle, visibleText } from '../vehicle-detail/vehicle-detail.test-support.spec';
-import { VehicleService } from '../vehicle.service';
 import { VehicleListComponent } from './vehicle-list.component';
+import { button, createSearchHarness, SearchHarness, showSearchResults } from './vehicle-list.search-test-support.spec';
 
 describe('Issue #3: open vehicle details in independent browser popups', () => {
   let fixture: ComponentFixture<VehicleListComponent>;
-  let service: jasmine.SpyObj<VehicleService>;
+  let h: SearchHarness;
   let openWindow: jasmine.Spy<typeof window.open>;
   const first = detailVehicle();
   const second = detailVehicle({ uuid: '00000000-0000-4000-8000-000000000002', brand: 'Ford' });
 
   beforeEach(async () => {
-    service = jasmine.createSpyObj<VehicleService>('VehicleService', ['list', 'getOne']);
-    service.list.and.returnValue(of([first, second]));
     openWindow = spyOn(window, 'open').and.returnValue(null);
-    await TestBed.configureTestingModule({ imports: [VehicleListComponent],
-      providers: [{ provide: VehicleService, useValue: service }],
-    }).compileComponents();
-    fixture = TestBed.createComponent(VehicleListComponent);
+    h = await createSearchHarness();
+    fixture = h.fixture;
   });
+  afterEach(() => h.http.verify());
 
   function clickRow(index: number): void {
     const row = fixture.nativeElement.querySelectorAll('tbody tr')[index] as HTMLTableRowElement;
@@ -29,7 +25,7 @@ describe('Issue #3: open vehicle details in independent browser popups', () => {
   }
 
   it('opens the clicked row at currentpath/full-uuid in a popup without navigating the list', () => {
-    fixture.detectChanges();
+    if (!showSearchResults(h, [first, second])) return;
     const beforeUrl = window.location.href;
     clickRow(1);
     expect(openWindow).toHaveBeenCalledTimes(1);
@@ -45,7 +41,7 @@ describe('Issue #3: open vehicle details in independent browser popups', () => {
   });
 
   it('uses different popup destinations so opening another vehicle does not replace the first', () => {
-    fixture.detectChanges();
+    if (!showSearchResults(h, [first, second])) return;
     clickRow(0);
     clickRow(1);
     expect(openWindow).toHaveBeenCalledTimes(2);
@@ -60,22 +56,29 @@ describe('Issue #3: open vehicle details in independent browser popups', () => {
   });
 
   it('preserves the list page, status filter, records and order when opening a detail', () => {
-    fixture.componentInstance.page = 2;
-    fixture.componentInstance.selectedStatuses = ['REGISTERED'];
+    const records = Array.from({ length: 102 }, (_, index) => detailVehicle({
+      uuid: `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+    }));
+    if (!showSearchResults(h, records)) return;
+    button(fixture.nativeElement, 'Registered')!.click();
+    fixture.detectChanges();
+    button(fixture.nativeElement, 'Next')!.click();
+    fixture.detectChanges();
+    button(fixture.nativeElement, 'Next')!.click();
     fixture.detectChanges();
     const tableBefore = visibleText(fixture.nativeElement.querySelector('table'));
     clickRow(0);
     expect(openWindow).withContext('this must exercise the popup path').toHaveBeenCalledTimes(1);
     expect(fixture.componentInstance.page).toBe(2);
     expect(fixture.componentInstance.selectedStatuses).toEqual(['REGISTERED']);
-    expect(fixture.componentInstance.vehicles).toEqual([first, second]);
+    expect(fixture.componentInstance.vehicles).toEqual(records);
     expect(visibleText(fixture.nativeElement.querySelector('table'))).toBe(tableBefore);
-    expect(service.list).toHaveBeenCalledOnceWith(2);
+    h.http.expectNone(() => true);
   });
 
   it('keeps the list usable and explains when the browser blocks the popup', () => {
     openWindow.and.returnValue(null);
-    fixture.detectChanges();
+    if (!showSearchResults(h, [first, second])) return;
     expect(() => clickRow(0)).not.toThrow();
     expect(openWindow).toHaveBeenCalledTimes(1);
     const alert = fixture.nativeElement.querySelector('[role="alert"]') as HTMLElement | null;
@@ -88,7 +91,7 @@ describe('Issue #3: open vehicle details in independent browser popups', () => {
     const setItem = jasmine.createSpy('setItem');
     const popup = { sessionStorage: { setItem }, opener: window } as unknown as Window;
     openWindow.and.returnValue(popup);
-    fixture.detectChanges();
+    if (!showSearchResults(h, [first, second])) return;
     clickRow(1);
     expect(setItem).toHaveBeenCalledOnceWith('vrls2.selected-event', JSON.stringify(second));
     expect(popup.opener).toBeNull();
@@ -99,7 +102,7 @@ describe('Issue #3: open vehicle details in independent browser popups', () => {
   it('closes an incomplete popup if the browser refuses the event handoff', () => {
     const close = jasmine.createSpy('close');
     openWindow.and.returnValue({ sessionStorage: { setItem: () => { throw new Error('storage blocked'); } }, close } as unknown as Window);
-    fixture.detectChanges();
+    if (!showSearchResults(h, [first, second])) return;
     expect(() => clickRow(0)).not.toThrow();
     expect(close).toHaveBeenCalledTimes(1);
     expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull();

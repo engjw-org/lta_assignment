@@ -1,8 +1,39 @@
 <section>
+  <form class="search-form" (submit)="$event.preventDefault(); search()" [attr.aria-busy]="loading">
+    <div class="search-fields">
+      <label>
+        UUID prefix or brand
+        <input #queryInput type="search" maxlength="100" placeholder="e.g. Toyota or 00000000"
+          [value]="searchQuery" (input)="searchQuery = queryInput.value">
+      </label>
+      <label>
+        Start date (on or after)
+        <input #startDateInput type="date" [value]="startDate" (input)="startDate = startDateInput.value">
+      </label>
+      <label>
+        End date (on or before)
+        <input #endDateInput type="date" [value]="endDate" (input)="endDate = endDateInput.value">
+      </label>
+      <label>
+        Seat type
+        <input #typeInput type="text" maxlength="50" placeholder="e.g. 5-seat"
+          [value]="seatType" (input)="seatType = typeInput.value">
+      </label>
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="search-button" [disabled]="loading">Search</button>
+      <span class="search-hint">All fields are optional. Leave them blank to search all vehicles.</span>
+      <span *ngIf="loading" role="status">Searching…</span>
+    </div>
+  </form>
+
   <div class="filters">
+    <span>Filter results:</span>
     <button
       type="button"
       [class.active]="selectedStatuses.includes('REGISTERED')"
+      [attr.aria-pressed]="selectedStatuses.includes('REGISTERED')"
+      [disabled]="!hasSearched || loading"
       (click)="toggleStatus('REGISTERED')"
     >
       Registered
@@ -10,11 +41,23 @@
     <button
       type="button"
       [class.active]="selectedStatuses.includes('DEREGISTERED')"
+      [attr.aria-pressed]="selectedStatuses.includes('DEREGISTERED')"
+      [disabled]="!hasSearched || loading"
       (click)="toggleStatus('DEREGISTERED')"
     >
       Deregistered
     </button>
   </div>
+
+  <p *ngIf="searchError" role="alert">{{ searchError }}</p>
+  <p *ngIf="!hasSearched && !loading && !searchError" class="search-hint">Choose your criteria, then click Search to show vehicles.</p>
+  <p *ngIf="hasSearched" class="result-summary" aria-live="polite">
+    {{ filteredVehicles().length | number }} of {{ vehicles.length | number }} returned records match the status filters.
+  </p>
+  <p *ngIf="truncated" class="limit-notice" role="status">
+    Showing the first {{ vehicles.length | number }} of {{ totalMatches | number }} matches.
+    Refine your search to find more specific records.
+  </p>
 
   <table>
     <thead>
@@ -28,7 +71,7 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let v of filteredVehicles()" (click)="open(v)" tabindex="0"
+      <tr *ngFor="let v of visibleVehicles()" (click)="open(v)" tabindex="0"
         (keydown.enter)="open(v)" (keydown.space)="$event.preventDefault(); open(v)"
         [attr.aria-label]="'Open details for ' + v.uuid">
         <td>{{ v.uuid.substring(0, 8) }}</td>
@@ -41,10 +84,12 @@
     </tbody>
   </table>
 
-  <div class="pager">
+  <p *ngIf="hasSearched && filteredVehicles().length === 0" role="status">No matching records.</p>
+
+  <div class="pager" *ngIf="hasSearched">
     <button type="button" (click)="prevPage()" [disabled]="page === 0">Previous</button>
-    <span>Page {{ page + 1 }}</span>
-    <button type="button" (click)="nextPage()">Next</button>
+    <span>Page {{ page + 1 }} of {{ totalPages }}</span>
+    <button type="button" (click)="nextPage()" [disabled]="page + 1 >= totalPages">Next</button>
   </div>
 
   <p *ngIf="popupMessage" role="alert">{{ popupMessage }}</p>

@@ -1,5 +1,74 @@
+.search-form {
+  padding: 16px;
+  margin-bottom: 16px;
+  border: 1px solid #d6dee7;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.search-fields {
+  display: grid;
+  grid-template-columns: minmax(240px, 2fr) repeat(3, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.search-actions, .filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.search-actions {
+  margin-top: 16px;
+}
+
 .filters {
-  margin-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.search-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 0;
+}
+
+.search-fields input {
+  font: inherit;
+  font-weight: 400;
+  padding: 8px 10px;
+  border: 1px solid #8796a6;
+  border-radius: 4px;
+  background: white;
+  min-width: 0;
+}
+
+.search-hint, .result-summary {
+  color: #555;
+  font-size: 14px;
+}
+
+.search-button {
+  color: white;
+  background: #165ba8;
+  border: 1px solid #165ba8;
+  border-radius: 4px;
+  padding: 8px 24px;
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.limit-notice {
+  padding: 12px;
+  border-left: 4px solid #a66b00;
+  background: #fff5d9;
+  color: #513600;
 }
 
 .filters button.active {
@@ -20,4 +89,16 @@ tbody tr {
 
 tbody tr:hover {
   background: #f5f5f5;
+}
+
+@media (max-width: 1000px) {
+  .search-fields {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .search-fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

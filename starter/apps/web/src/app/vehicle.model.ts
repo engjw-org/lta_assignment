@@ -9,3 +9,16 @@ export interface Vehicle {
   type: string;
   category: 'personal' | 'commercial';
 }
+
+export interface VehicleSearchCriteria {
+  query?: string;
+  startDate?: string;
+  endDate?: string;
+  type?: string;
+}
+
+export interface VehicleSearchResult {
+  records: Vehicle[];
+  totalMatches: number;
+  truncated: boolean;
+}
