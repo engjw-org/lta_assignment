@@ -1,46 +1,31 @@
 ## Context
 
-The start date is not shown in the required format. The backend reads CSV dates using the wrong date format. Some CSV rows also have the wrong time format.
+The detail component displays only `TODO`, so clicking a list row cannot show all vehicle fields (R-1.6). The user wants separate browser popups at `currentpath/uuid` for comparison while retaining the original list state. Details must support later input, readable dates, a responsive grid and safe rendering (R-2.3, R-2.4, R-6.2).
 
 ## Decision
 
-- Show dates on screen as `DD MMM YYYY`.
-- Check all CSV rows before sending data to the frontend. Check missing fields, data types, text lengths, and allowed values.
-- Accept times only in `HH:mm:ss` format. For example, accept `09:00:00` and reject `9:00:00`.
-- Skip invalid rows and record the file name, row number, field, and reason.
-- Keep the original CSV files unchanged.
+- Open each different vehicle in an independent popup at `currentpath/<full-uuid>`; from the root list this is `/<uuid>`. Keep the list's page, filters and row order. Provide a labelled Close control and visible feedback if the browser blocks opening.
+- Reuse the detail component's complete `vehicle` input and `close` output. Support delayed input and updates without mutating the record; keep simultaneous instances independent. Show the clicked event's values when a UUID has multiple events.
+- Display labelled values for all CSV fields and category, including full UUIDs. Format both dates as `DD MMM YYYY`; preserve `HH:mm:ss` time. Use multiple grid columns at 1280×720 and one at 360×640, wrapping long values without horizontal overflow.
 
-The proposed maximum lengths are 100 characters for brand and 50 for type. These limits need confirmation because the assignment does not give exact limits.
+## Data model and requirement ambiguity
 
-## Requirement conflicts
+The existing `Vehicle` model already has `uuid`, `status`, `startDate`, `endDate`, `time`, `userUuid`, `brand`, `type` and `category`; no missing field requires a model change. Each row remains an event; UUID identifies the vehicle, not a unique event (R-4.2, R-4.3). R-1.6 therefore requires preserving the selected row during popup handoff, rather than silently replacing it with the first UUID match. A bare URL for repeated UUIDs remains an open question, not a claimed requirement contradiction.
 
-The CSV date format and screen date format are different on purpose. 
+Existing issue #1 policy remains: strict CSV date/time validation, rejection diagnostics and unchanged source files (R-4.1, R-6.1). Brand/type bounds remain the proposed 100/50 characters pending confirmation.
 
-## Data model
+## Security and threat model
 
-Each CSV row is one vehicle status event. The UUID identifies the vehicle.
+Render untrusted fields through Angular interpolation/property binding; do not use `innerHTML` or bypass sanitisation. Tests require markup in `uuid`, `brand`, `type` and `userUuid` to remain literal text without injected elements. Backend validation remains the ingestion boundary; popup data is not a new trust boundary exemption.
 
-Keep every valid event, including repeated UUIDs, so history is not lost. Record the source file, row number, and loading time. Later, use the latest event to show the vehicle’s current status.
-
-Keep data in memory for this assignment.
-
-## Security
-
-Treat CSV data as untrusted and validate it before use. Display values using Angular’s safe bindings. Keep secrets out of the repository and avoid showing internal error details.
-
-Allow access without login only in an explicitly enabled local development mode. Before production, require valid login, check admin permission on every API request, and block startup when login settings are missing.
-
-These are planned controls, not completed work. Protection against a compromised server is outside this assignment’s scope.
+Retain the R-6.3 stance: anonymous access only in explicitly enabled local development; before production, require login, check admin permission on every API request and block startup if authentication configuration is missing. Those authentication controls are planned, not implemented here. Compromised-server protection is outside scope.
 
 ## Trade-off
 
-Strict validation means the eight rows with invalid times will not appear until corrected at the source. This avoids showing invalid data.
+Separate windows permit comparison and preserve the list, but browser popup policy can prevent opening. Explicit feedback makes that failure visible.
 
-Data kept in memory will be lost when the application restarts.
+## Test evidence and open question
 
-## Open questions
+Added 21 frontend tests: **20 fail, 1 passes**; both earlier date-display tests still pass. All **103 backend regression tests pass**. Tests cover fields, dates, input updates, safe text, closing, popup requests, routing and real component layouts in sized iframes. They do not yet prove cross-window data transfer, browser close/return behaviour or full application layout. Measure the R-5.2 ≥70% changed-code coverage target during implementation.
 
-- What are the correct maximum lengths for brand and type?
-- Who should review and correct rejected rows?
-- Which date should decide the latest status event?
-- Which login system should production use?
+For a repeated UUID opened directly or refreshed without the clicked-row payload, which event should be shown? Resolve this before implementing that lookup; do not silently choose the first event.

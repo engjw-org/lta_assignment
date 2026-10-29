@@ -383,7 +383,7 @@ _User to complete._
 
 ### 1. Task description
 
-_User to complete._
+To know how to build after code change
 
 ### 2. User prompt(s)
 
@@ -407,6 +407,208 @@ Rebuilt and started both Docker services. The application is running at `http://
 - Confirmed both HTTP endpoints return **200**. The first API record has `startDate: 2022-11-01`, `endDate: 2032-01-01` and `time: 12:30:00`. Startup logs show structured rejections for the same eight malformed-time rows.
 - Opened the rebuilt frontend in Chrome, verified the Start Date cell reads `01 Nov 2022`, and left the application tab open for review. This was a startup and date-display check, not a complete audit of the assignment's other requirements.
 - Updated this log and the single build configuration file only. No staging, commits, pushes or merges were performed.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 010 — 29 Oct 2026 — Failing detail-view tests and ADR
+
+### 1. Task description
+
+based on issue 3 to create unit test and ADR
+
+### 2. User prompt(s)
+
+```text
+1. Problem statement — what is wrong or missing, in user-visible terms
+
+- add detail view feature for the TODO part for vehicle component
+
+2. Root cause hypothesis — your best current theory (you may be wrong; that is fine, update the issue when you learn more)
+
+- the feature is not implement yet
+
+3. Acceptance criteria — specific, testable conditions that mean the issue is resolved
+
+- able to pass in later to this page
+- I prefer a pop up page, with currentpath/uuid, so easy to close and return to the state before click, and able to handle multiple different vehicle detail page, able to compare if needed
+- it much usable on a 1280 x720 desktop browser, with responsive design (grid view here)
+- need to update model, vehicle list page need to get all the data available in excel, then pass in the all field to the detail page based on the on click of specific row
+- need to ensure the page pass R-6.2
+- pass unit test
+
+4. Requirement reference — which R-x.y this maps to, or discovered-defect if it does not map to a stated requirement
+   R-1.6 Clicking a row or calendar entry must open a detail view showing all fields for that vehicle.
+   R-2.3 Dates must be rendered as DD MMM YYYY (e.g. 08 Apr 2026).
+   R-2.4 The UI must be usable on a 1280×720 desktop browser. Mobile responsiveness is a bonus.
+   R-5.2 Test coverage must be sufficient to support the TDD constraint in §7. Aim for ≥70% line
+   coverage on changed code.
+   R-6.2 All user-supplied fields (uuid, brand, type, user_uuid) must be rendered using
+   Angular’s safe-binding primitives (interpolation, property binding). Do not use innerHTML on
+   untrusted data; DomSanitizer.bypassSecurityTrust* is acceptable only with a
+   documented justification.
+
+here my github issue 2, i need your help on
+
+1. i have created the feature based on the issue 2
+2. i need the unit test like mentioned in point 8, that able to not only handle the parse issue in backend but also check all csv data with R6.1 rules
+3. it no need any code changes, need the failing test first
+4. after done 1 to 3, update the ADR based on my github issue and the unit test done, dun add any additional no related on this issue fix info
+```
+
+### 3. AI output and user assessment
+
+**AI answer:**
+
+Prepared failing detail-view tests and updated the ADR, without changing production code. GitHub assigned this second issue **#3**, “Add detail view feature”; **#2** is the merged pull request for issue #1. Work is on `issue-3-add-detail-view-feature`, with the previous `issue-2-add-detail-view-feature` branch preserved. Final frontend result: **23 tests, 20 failed and 3 passed**. Backend regression result: **103 passed, no failures, errors or skips**. Review and manually commit the failing tests on the issue branch before requesting the implementation, as §§8 and 16 require.
+
+**Work produced:**
+
+- Read `assignment.md`, agent instructions, the current ADR, models, components, service, application configuration and existing tests. The working tree was initially clean. The model already contains all eight CSV fields plus category; the detail component is still `TODO`. No model change was needed to express the tests.
+- The GitHub connector returned 404 for this private repository. Used the signed-in browser to find and read the open detail issue at `https://github.com/engjw/lta_assignment/issues/3`; its body matches the supplied acceptance criteria. Did not edit or post to GitHub.
+- Confirmed the original issue-2 branch and `main` both pointed at merge commit `91d48eb`. Created `issue-3-add-detail-view-feature` from local `main` to follow §7's issue-number branch naming. Created no commits and did not rewrite history.
+- Added `starter/apps/web/src/app/vehicle-detail/vehicle-detail.component.spec.ts`: 15 tests for all labelled fields/full UUIDs, delayed and changed input, repeated-UUID event values, clearing input, three date examples covering both date columns, literal rendering of markup in four untrusted fields, Close output, independent component instances, and grid layout at 1280×720 and 360×640.
+- Added `vehicle-detail.test-support.spec.ts` in the same directory: fixture data, text/control helpers and a test-only iframe with a real CSS viewport. It mounts the actual component with its compiled styles; it does not implement the missing detail view. Layout assertions check grid columns, field geometry, horizontal overflow, desktop visibility and the Close control using maximum-length brand/type values.
+- Added `starter/apps/web/src/app/vehicle-list/vehicle-list.popup.spec.ts`: four tests for the clicked row's full UUID URL, independent popup targets, unchanged list page/filter/record order, and feedback when the browser returns no popup handle. Browser opening is spied on; these tests do not create actual popups.
+- Added `starter/apps/web/src/app/vehicle-detail/vehicle-detail.route.spec.ts`: one test using the real application configuration, requiring a detail route that renders all fields for a unique UUID. No replacement routes are installed in the test. Its current failure clearly reports the empty application route configuration.
+- Added `starter/apps/web/src/app/vehicle.service.spec.ts`: one passing HTTP-boundary regression test proving the list response retains all nine model fields and distinct events with the same UUID. The backend response is a test fixture; the existing backend suite separately checks actual CSV ingestion.
+- Updated `docs/adr/0001-vrls2-takehome.md` around this issue's confirmed popup design, existing model, selected-event ambiguity, safe rendering, responsive layout, trade-off and test evidence. Preserved a concise statement of issue #1 validation policy and the mandatory R-6.3 authentication stance. The latter remains planned work; no authentication implementation was added. No unrelated feature decisions were introduced.
+
+**Actual validation and limitations:**
+
+- Ran `npm.cmd test -- --progress=false` with headless Chrome. First run: 19 failures and 4 passes. Tightened the input-clearing test to require a visibly rendered record before clearing it, and changed the route test's missing-configuration failure from a routing exception to a direct assertion. Also added geometry assertions for all field values in the layout tests. Reran the final files: **20 failures and 3 passes** across 23 tests. The new tests account for 20 failures and one pass; the earlier two issue #1 display tests still pass. Log: `starter/apps/web/.angular/issue-3-red-run.log`.
+- These are runtime assertion failures, not missing imports or TypeScript compilation failures. The 15 detail tests fail because the component renders `TODO`; four popup tests fail because row clicks do not open a browser window; the route test fails because no application routes are configured. The service data-preservation test passes because those fields already exist and are preserved.
+- Ran the existing backend suite using Java 21 in `maven:3.9-eclipse-temurin-21`: **103 tests passed** (98 field/schema validation cases, four dataset cases, one controller smoke test). The dataset checks still cover all 234 source rows, expecting 226 accepted and eight rejected malformed-time rows. Log: `starter/apps/api/target/issue-3-csv-regression.log`. No CSV files or backend tests were changed.
+- Component tests check safe literal rendering, not a complete security audit. Popup spies and separate component instances do not prove cross-window payload delivery, real popup closing/return behaviour, browser popup permission policy, or full-page visual usability. Those require integration/browser verification when the feature exists. No ≥70% implementation-coverage claim is made during this red-test stage.
+- The route test uses a unique UUID. For repeated UUIDs, clicking must preserve the selected event; which event to show on a bare URL or refresh without that payload remains an explicit ADR question. Do not silently use the first matching event.
+- Verified production files and existing tests are unchanged; all new code is in `.spec.ts` files excluded from the application build. Nothing was staged, committed, pushed or merged. The running application was not rebuilt or modified.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 011 — 29 Oct 2026 — Confirm detail-test scope and popup behaviour
+
+### 1. Task description
+
+_User to complete._
+Make clarification to let codex answer more point to what I need
+
+### 2. User prompt(s)
+
+The user answered two clarification questions:
+
+```text
+Question: For issue #2, should the new tests focus on vehicle details, navigation, responsive layout and safe rendering (R-6.2)? Your point 2 repeats issue #1’s backend parsing and CSV validation scope.
+Answer: Detail-view tests; rerun existing CSV tests
+
+Question: For comparing vehicles, should each row open a separate browser popup at a URL ending in the vehicle UUID, leaving the list unchanged?
+Answer: Separate browser popup per vehicle
+```
+
+### 3. AI output and user assessment
+
+**AI answer:**
+
+Applied those choices to the tests and ADR described in Entry 010: new tests target vehicle details and independent browser popups, while the existing CSV suite is rerun unchanged. Did not reinterpret “popup” as an in-page dialog or add new backend validation rules. Explained that the verified GitHub issue is #3 and used the matching branch. The results and test limitations are recorded in Entry 010.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 012 — 29 Oct 2026 — Review issue #3 tests before committing
+
+### 1. Task description
+
+know more about the unit test created by codex, and do review after that
+
+### 2. User prompt(s)
+
+```text
+explain the unit tests you added for issue 3 and why they fail, so i can review before manually committing
+```
+
+### 3. AI output and user assessment
+
+**AI answer:**
+
+The 21 newly added issue #3 tests have 20 expected failures and one pass in the last recorded run. Including the two existing list-date tests, the frontend total is 23 tests: 20 failures and three passes. The existing 103 backend tests passed, including CSV validation and all four dataset checks. These are saved results from the previous test run; no tests were rerun for this explanation.
+
+`vehicle-detail.component.spec.ts` contains 15 failing tests:
+
+| Group | Tests | What is checked and why it currently fails |
+| --- | ---: | --- |
+| Complete fields and input behaviour | 5 | All eight CSV fields plus category, full UUIDs, delayed input without mutation, updated values for a different event with the same UUID, clearing a previously visible record, and independence of two detail instances. These are five test cases: the first combines the field checks, followed by delayed input, changed event, clearing, and independent instances. The template only renders `TODO`, so the expected values are absent. The clearing test fails its initial visible-record check; it does not establish that stale values are currently displayed. |
+| Date display | 3 | Both start and end dates must render as `08 Apr 2026`, `01 Nov 2022` or `29 Feb 2024`, with unchanged source strings. Each example requires the formatted value twice. No dates are rendered yet; this is not a new backend parsing failure. |
+| Safe text rendering | 4 | Supply markup directly in `uuid`, `brand`, `type` and `userUuid`. Require the complete literal text to be visible and no injected element to exist. The literal-text assertion fails because only `TODO` appears. These failures are not evidence of an existing XSS exploit; the no-injected-element assertion currently passes. |
+| Close control | 1 | Clicking a labelled Close button emits the component's `close` output once and does not change its record. There is no button, so no close event is emitted. This does not test a real browser window closing. |
+| Responsive grid | 2 | Mount the real component and its styles in 1280×720 and 360×640 iframes. Check multi-column desktop/single-column narrow layout, long values, no horizontal overflow, visible fields and Close control; desktop values must fit vertically. The current component has no fields, grid or Close button. |
+
+`vehicle-list.popup.spec.ts` contains four failing tests: a row opens a same-origin `currentpath/full-uuid` popup without navigating the list; different vehicles use separate destinations/window targets; list page/filter/records/order are preserved without reloading the list; and a blocked popup gets visible feedback while the list stays usable. Current `open(vehicle)` only assigns `selected`; it never calls `window.open`. All four therefore fail the opening expectation. The state-preservation assertions already pass, and the blocked-popup case also lacks its expected alert. `window.open` is spied on and returns null in these tests, so they do not verify successful window creation or cross-window data delivery.
+
+`vehicle-detail.route.spec.ts` contains one failing test using the actual application configuration and a mocked vehicle service. It requires `/<uuid>` to show the complete detail rather than the list or `TODO`. The current route configuration is empty, so the first routing assertion fails. The route test uses a unique UUID and does not resolve the multiple-events case or verify a real HTTP lookup.
+
+`vehicle.service.spec.ts` contains the one new passing test. It supplies an HTTP response containing two events with the same UUID and verifies the service preserves all nine model fields and both records. The existing model/service already do this. This is useful regression protection, not a deliberately manufactured failure or a reason to change an already complete model.
+
+`vehicle-detail.test-support.spec.ts` supplies fixture records, text/control helpers and the layout iframe. It adds no standalone test executions and no implementation of the feature.
+
+Review the design choices before committing: the narrow viewport is specifically 360×640 with one column; desktop fields must fit within 1280×720; Close must be a labelled button; blocked opening must have visible alert feedback; and the route test expects Angular application routing. These make the acceptance criteria concrete but are not all exact requirements stated in the assignment.
+
+The tests do not yet prove actual selected-row transfer into a popup, successful opening and closing of real windows, restoration of browser focus/scroll, full-page visual usability or complete R-6.2 compliance. They check literal rendering but do not inspect source code to prohibit `innerHTML` or sanitiser bypasses. The direct-link/refresh policy for a UUID with multiple events remains an ADR question; the component test only proves that supplied event values must be displayed. No ≥70% implementation-coverage claim is made. The user should review and manually commit the red tests on `issue-3-add-detail-view-feature` before production implementation, as §§8 and 16 require.
+
+**Work produced and validation:**
+
+- Read the assignment, current agent instructions, five test/support files, relevant production components/configuration, ADR and saved frontend/backend results.
+- Confirmed the current branch and that no tracked application files or staged files have changed. Did not rerun tests, alter test assertions, change the ADR or production code, rebuild containers, stage files or commit.
+- Appended this explanation to the AI log while preserving previous entries and user assessment fields.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 013 — 29 Oct 2026 — Document test and rebuild commands
+
+### 1. Task description
+
+_User to complete._
+add command to readme file
+
+### 2. User prompt(s)
+
+```text
+add mvn test, angular test, and docker build command after code change to readme
+```
+
+### 3. AI output and user assessment
+
+**AI answer:**
+
+Updated `starter/README.md` with an “After code changes: test, build and run” section. It documents `mvn test` from `apps/api`, Angular tests through `npm test -- --progress=false` from `apps/web`, and `docker compose build` followed by `docker compose up -d` from `starter`. Included the combined `docker compose up -d --build` alternative, service status check and browser refresh.
+
+Added the Java 21 Maven Docker alternative for PowerShell, Chrome setup guidance and the Windows `npm.cmd` alternative. Explained that the CSV tests need the API working directory, Docker containers require rebuilding to pick up source changes, and Docker builds do not run these test suites. Retained the assignment's red-test review/manual-commit sequence before implementation.
+
+**Work produced and validation:**
+
+- Read the assignment, agent instructions, existing README, frontend test script, Compose configuration and relevant Dockerfile build commands. Checked the issue branch and preserved the existing tests and ADR changes.
+- Checked the documented paths and commands against the repository configuration and previously executed commands. Ran `git diff --check`; no tests or builds were run for this documentation-only update.
+- Changed only the README and appended this log entry in this turn. No files were staged, committed, pushed or merged.
 
 **User assessment — what you kept, refined, or rejected, and why:**
 
