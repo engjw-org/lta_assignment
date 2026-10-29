@@ -617,3 +617,145 @@ _User to complete._
 ### 4. Where AI accelerated you vs where you overrode it
 
 _User to complete._
+
+## Entry 014 — 29 Oct 2026 — Implement issue #3, test and run Docker
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+now implement issue 3 and make all unit tests pass, then build and run with docker
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Verified a clean working tree on `issue-3-add-detail-view-feature` and the user's failing-test commit `e010d7f`. Verified GitHub issue #3 was open in authenticated Chrome after the connector and signed-out in-app browser returned 404. Read the assignment, agent rules, ADR, tests and implementation. The committed frontend tests reproduced **20 failures / 3 passes** before production edits. The first restricted run could not launch Chrome; rerunning with approved execution access worked.
+
+Updated the ADR before implementation with the user's event-chooser decision. Added tests for selected-row handoff, independent popup storage, refresh, corrupt/changed cached records, chooser selection, missing/invalid vehicles, API errors and browser closing. Corrected a test typing error, then confirmed **30 failures / 3 passes**. Three added backend lookup tests also failed before implementation. These additions extend the committed issue #3 red baseline; they are not separately committed.
+
+Implemented all-field safe-bound detail rendering, formatted dates, responsive grid, Angular UUID routing, separate browser popups, complete event handoff through each popup's session storage, opener detachment, Close and blocked/storage-error feedback. Added optional UUID lookup to the existing list endpoint to return all matching validated events independently of page size. Cached data is only a selection hint: the page displays matching validated API records. Direct URLs choose automatically only when exactly one event exists; multiple events require selection. Existing models already contained all fields, so no model or CSV changes were needed.
+
+**Validation and final outcome:**
+
+- All **34 Angular tests passed** with ChromeHeadless, including the added real HTTP service contract test. Frontend line coverage was **79/90 (87.77%)**; detail page **44/45 (97.77%)**, list component **24/33 (72.72%)**, service **5/6 (83.33%)** and the remaining changed frontend production files **100%**. These are instrumented TypeScript line figures, not visual or security-completeness measures.
+- All **106 Maven tests passed**, including 103 existing CSV/controller regressions and the three new detail-lookup tests. JaCoCo controller line coverage was **13/16 (81.25%)**; existing CSV loader coverage remained **80/81 (98.77%)**.
+- `docker compose up -d --build` succeeded, rebuilt both images and started `starter-api-1` and `starter-web-1`. HTTP checks verified the web page returned 200 and the new API UUID lookup returned the expected complete vehicle event. The first restricted HTTP check was denied local socket access; an approved rerun succeeded. The existing list pagination behavior was not changed by this issue.
+- Browser checks confirmed separate popups for two UUIDs, all nine displayed fields, formatted dates, refresh retaining the same event, and a direct UUID link resolving through Nginx. Chrome mouse/screenshot automation timed out on a popup; keyboard Close subsequently removed that popup while another popup and the list remained. Further checks compared the list on Page 2 with the Deregistered filter before/after opening: records/order/page and the active filter were preserved (accessibility focus marking changed, as expected).
+- Inspected complete-page screenshots at 1280×720 and 360×640 in the in-app browser; the desktop fields fit and the narrow layout used one column without horizontal overflow. Temporary viewport overrides were reset. The dataset has no repeated UUIDs, so chooser/selected-event ambiguity is exercised by fixtures rather than claimed as a real-data browser check. Browser focus restoration and all browser popup-policy variations were not exhaustively tested.
+- Saved run output in ignored `.angular/issue-3-committed-red.log`, `.angular/issue-3-extended-red.log`, `.angular/issue-3-green.log`, API `target/issue-3-lookup-red.log`, `target/issue-3-backend-green.log`, and `target/issue-3-docker-build.log`; coverage reports are under the existing ignored output directories.
+- Updated the issue-focused ADR with the implementation, decision and evidence. All prepared changes remain unstaged and uncommitted for manual review. No GitHub issue text was posted or rewritten by the agent.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 015 — 29 Oct 2026 — Direct URL event selection
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+Question: For a vehicle URL opened directly without a clicked row, a UUID can match several status events (R-4.2/R-4.3). Should the page show an event chooser or the latest event? Popups opened from the list will always show the exact row you clicked.
+
+User answer:
+
+```text
+Show an event chooser (recommended)
+```
+
+### 3. AI output and user assessment
+
+**AI answer:** Recorded this decision in the ADR and implemented an event chooser for direct URLs with multiple events. A clicked-row snapshot selects its exact matching API event and survives refresh in that popup. No arbitrary first or latest event is selected for ambiguous direct links.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 016 — 29 Oct 2026 — Remove redundant navigation and refine detail ADR
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+1. no need back to vehicle list button, because close also will go back
+2. update ADR, based on the update changes did, and with suggestion below
+   1. the pop up url better with a unique UUID for that record, in future with proper DB structure
+   2. can still stick to vehicle UUID, and add one more feature, which will use api to get all the records and can based on tab to choose which detail to display in pop up detail page, default is open that specific record clicked
+   3. add remark there, currently direct open with link if not from record list, it always open the first event, these can be solve with above 1 and 2 idea
+```
+
+_HTML whitespace entities normalized above; wording preserved._
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Removed the Back to vehicle list link, unused RouterLink import and link styling from `vehicle-detail-page.component.ts`. Kept the existing Close behavior. This is a small review refinement of the existing issue #3 implementation, whose failing-test commit is `e010d7f`; no new feature or tests were introduced for the link removal.
+
+Updated `docs/adr/0001-vrls2-takehome.md` to describe the current implementation and the user's future proposals: persistent status-event record UUIDs with a proper database, or vehicle UUID URLs with API-backed event tabs and the clicked record selected by default. Retrieval of all events for one vehicle already exists; record UUIDs and tabs remain proposals, not completed work. Documented that shareable selection of a specific event still needs a stable identifier.
+
+Corrected the proposed first-event remark against the code and tests: the current detail page restores a matching saved selection, automatically shows a sole event, or offers a chooser for multiple events. Only the older single-record API lookup uses `findFirst`; the detail page does not call it. No selection behavior was changed to make the remark true. Documented that Close returns from script-opened popups by closing them; directly opened browser tabs may require the browser's own close control.
+
+Read the assignment and agent instructions, confirmed the issue branch/red commit, and verified issue #3 remains open in authenticated GitHub. Preserved the ADR's required security/threat-model and R-6.3 authentication stance and kept the record focused on issue #3.
+
+**Validation:** All **34 Angular tests passed** after the link removal (`.angular/issue-3-close-only.log`). Backend code was unchanged and Maven tests were not rerun. `docker compose up -d --build --no-deps web` succeeded; both containers are running. Verified the rebuilt detail URL shows all fields and Close with no Back to vehicle list link. Build output is saved in ignored `.angular/issue-3-close-only-build.log`. The ADR is 455 words, and `git diff --check` passed. Changes remain unstaged and uncommitted.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 017 — 29 Oct 2026 — Consolidate the shared assignment ADR
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+I think the ADR should with all issues, not one issue one ADR, help to combine it and and give exact format in assignmenet.md, and keep everything concise and clear, no redundant info
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Confirmed that assignment §9 requires a single shared, one-page ADR at `docs/adr/0001-vrls2-takehome.md`, rather than replacing it with an issue-specific record. Reviewed the current ADR, the merged issue #1 version, relevant implementation and AI-log decisions. Verified GitHub's all-issues view contains issue #1 (Date Time format issue, completed) and issue #3 (Add detail view feature, open). Used a separate browser tab so the user's existing new-issue page was not navigated away from or edited.
+
+Rewrote the shared ADR in 473 words using exactly the six requested section headings: Context; Conflicts found in §5; Data model; Security & threat model; One explicit trade-off; Open questions. Context has four sentences. Combined strict CSV ingestion/rejection and date display from issue #1 with event preservation, popup selection, responsive details and safe rendering from issue #3. Retained the user's future record-UUID/database and API-backed tab proposals and the unconfirmed brand/type bounds. Removed test-run history, coverage figures and repeated implementation notes from the ADR; their evidence remains in this log.
+
+Kept current implementation distinct from planned work: authentication/authorisation closure, accepted-record provenance and ingestion times, and uniform API error envelopes remain outstanding. Documented the actual direct-link chooser behavior without repeating the incorrect always-first-event claim. Preserved the explicit R-6.3 production closure plan and a scoped threat model.
+
+**Assignment reminder:** neither existing issue explicitly surfaces a §5 requirement conflict. The ADR identifies R-1.4 versus R-2.1 as conflicting default-sort rules and records that no precedence rule is approved. The user must raise the conflict in their own words and decide the rule before related implementation (§§7, 16). This documentation edit does not satisfy that GitHub issue requirement and does not invent an approved resolution or post an AI-written issue.
+
+**Validation and repository state:** Documentation only; no application/test/CSV changes, test runs or Docker rebuilds. Checked the six headings against assignment §9, the four-sentence context, word count and `git diff --check`. The user had already staged changes at the start of this turn. Preserved that staged content and left the new ADR and AI-log edits unstaged; no commits, pushes or merges.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._

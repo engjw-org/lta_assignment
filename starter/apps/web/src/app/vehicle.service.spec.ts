@@ -6,6 +6,18 @@ import { Vehicle } from './vehicle.model';
 import { VehicleService } from './vehicle.service';
 
 describe('Issue #3: complete records are available to the list and detail', () => {
+  it('requests all events for the detail UUID using an encoded query value', () => {
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    const service = TestBed.inject(VehicleService);
+    const http = TestBed.inject(HttpTestingController);
+    const events = [detailVehicle(), detailVehicle({ status: 'DEREGISTERED' })];
+    let received: Vehicle[] | undefined;
+    service.list(0, events[0].uuid).subscribe(rows => received = rows);
+    http.expectOne(`http://localhost:8080/api/vehicles?page=0&uuid=${events[0].uuid}`).flush(events);
+    expect(received).toEqual(events);
+    http.verify();
+  });
+
   it('preserves all fields and separate events with the same UUID from the list response', () => {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     const service = TestBed.inject(VehicleService);

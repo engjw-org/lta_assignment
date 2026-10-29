@@ -28,7 +28,9 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let v of filteredVehicles()" (click)="open(v)">
+      <tr *ngFor="let v of filteredVehicles()" (click)="open(v)" tabindex="0"
+        (keydown.enter)="open(v)" (keydown.space)="$event.preventDefault(); open(v)"
+        [attr.aria-label]="'Open details for ' + v.uuid">
         <td>{{ v.uuid.substring(0, 8) }}</td>
         <td>{{ v.brand }}</td>
         <td>{{ v.type }}</td>
@@ -45,9 +47,5 @@
     <button type="button" (click)="nextPage()">Next</button>
   </div>
 
-  <app-vehicle-detail
-    *ngIf="selected"
-    [vehicle]="selected"
-    (close)="close()"
-  ></app-vehicle-detail>
+  <p *ngIf="popupMessage" role="alert">{{ popupMessage }}</p>
 </section>

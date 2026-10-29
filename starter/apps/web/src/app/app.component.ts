@@ -1,13 +1,13 @@
 import { Component } from '@angular/core';
-import { VehicleListComponent } from './vehicle-list/vehicle-list.component';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [VehicleListComponent],
+  imports: [RouterOutlet],
   template: `
     <h1>VRLS2 Admin</h1>
-    <app-vehicle-list></app-vehicle-list>
+    <router-outlet></router-outlet>
   `,
 })
 export class AppComponent {}

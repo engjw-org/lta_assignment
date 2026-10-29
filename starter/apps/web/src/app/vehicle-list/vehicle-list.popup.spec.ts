@@ -83,4 +83,25 @@ describe('Issue #3: open vehicle details in independent browser popups', () => {
     expect(alert ? visibleText(alert) : '').toMatch(/pop.?up|blocked/i);
     expect(fixture.componentInstance.vehicles).toEqual([first, second]);
   });
+
+  it('passes the complete clicked event into its own window, detaches the opener and keeps the list unchanged', () => {
+    const setItem = jasmine.createSpy('setItem');
+    const popup = { sessionStorage: { setItem }, opener: window } as unknown as Window;
+    openWindow.and.returnValue(popup);
+    fixture.detectChanges();
+    clickRow(1);
+    expect(setItem).toHaveBeenCalledOnceWith('vrls2.selected-event', JSON.stringify(second));
+    expect(popup.opener).toBeNull();
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
+    expect(fixture.componentInstance.vehicles).toEqual([first, second]);
+  });
+
+  it('closes an incomplete popup if the browser refuses the event handoff', () => {
+    const close = jasmine.createSpy('close');
+    openWindow.and.returnValue({ sessionStorage: { setItem: () => { throw new Error('storage blocked'); } }, close } as unknown as Window);
+    fixture.detectChanges();
+    expect(() => clickRow(0)).not.toThrow();
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(fixture.nativeElement.querySelector('[role="alert"]')).not.toBeNull();
+  });
 });

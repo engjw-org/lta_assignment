@@ -1,31 +1,33 @@
+# ADR 0001 — VRLS2 take-home
+
 ## Context
 
-The detail component displays only `TODO`, so clicking a list row cannot show all vehicle fields (R-1.6). The user wants separate browser popups at `currentpath/uuid` for comparison while retaining the original list state. Details must support later input, readable dates, a responsive grid and safe rendering (R-2.3, R-2.4, R-6.2).
+VRLS2 extends the supplied Angular/Spring Boot starter, using four CSVs as the source of truth. [Issue #1](https://github.com/engjw/lta_assignment/issues/1) fixes date/time parsing, CSV validation and date display (R-4.1, R-6.1, R-2.3). [Issue #3](https://github.com/engjw/lta_assignment/issues/3) adds safe, responsive popups showing every vehicle field while preserving list state (R-1.6, R-2.4, R-6.2). This shared ADR records decisions across both issues; future proposals remain explicit.
 
-## Decision
+## Conflicts found in §5
 
-- Open each different vehicle in an independent popup at `currentpath/<full-uuid>`; from the root list this is `/<uuid>`. Keep the list's page, filters and row order. Provide a labelled Close control and visible feedback if the browser blocks opening.
-- Reuse the detail component's complete `vehicle` input and `close` output. Support delayed input and updates without mutating the record; keep simultaneous instances independent. Show the clicked event's values when a UUID has multiple events.
-- Display labelled values for all CSV fields and category, including full UUIDs. Format both dates as `DD MMM YYYY`; preserve `HH:mm:ss` time. Use multiple grid columns at 1280×720 and one at 360×640, wrapping long values without horizontal overflow.
+CSV dates (`DD/MM/YYYY`) and displayed dates (`DD MMM YYYY`) serve different purposes and are compatible: validate the source format, then format for display.
 
-## Data model and requirement ambiguity
+R-1.4 requires newest-registration-first sorting; R-2.1 requires UUID-alphabetical sorting by default. No precedence rule is approved. Issues #1/#3 do not raise this conflict; a dedicated issue and decision are still required before related implementation (§7).
 
-The existing `Vehicle` model already has `uuid`, `status`, `startDate`, `endDate`, `time`, `userUuid`, `brand`, `type` and `category`; no missing field requires a model change. Each row remains an event; UUID identifies the vehicle, not a unique event (R-4.2, R-4.3). R-1.6 therefore requires preserving the selected row during popup handoff, rather than silently replacing it with the first UUID match. A bare URL for repeated UUIDs remains an open question, not a claimed requirement contradiction.
+## Data model
 
-Existing issue #1 policy remains: strict CSV date/time validation, rejection diagnostics and unchanged source files (R-4.1, R-6.1). Brand/type bounds remain the proposed 100/50 characters pending confirmation.
+Keep validated events in memory; no database is introduced. Each record contains the eight CSV fields plus category derived from its source file. Vehicle UUID identifies a vehicle, not an individual event; retain every valid repeated-UUID event (R-4.2, R-4.3, R-4.5). Parse dates/times strictly, expose ISO dates through the API, and render dates as `DD MMM YYYY` with time as `HH:mm:ss`.
 
-## Security and threat model
+Open `currentpath/<vehicle-uuid>` in an independent popup. Match the clicked record's per-window session snapshot against all validated API events for that UUID. Refresh restores a matching selection; otherwise show a sole event or a chooser. Close dismisses the popup without changing the original list. The layout supports 1280×720 and a single column on narrow screens.
 
-Render untrusted fields through Angular interpolation/property binding; do not use `innerHTML` or bypass sanitisation. Tests require markup in `uuid`, `brand`, `type` and `userUuid` to remain literal text without injected elements. Backend validation remains the ingestion boundary; popup data is not a new trust boundary exemption.
+## Security & threat model
 
-Retain the R-6.3 stance: anonymous access only in explicitly enabled local development; before production, require login, check admin permission on every API request and block startup if authentication configuration is missing. Those authentication controls are planned, not implemented here. Compromised-server protection is outside scope.
+Treat CSV input and browser storage as untrusted. Validate schema, required fields, types, UUIDs, lengths and status/source consistency before serving records (R-6.1). Reject malformed rows without rewriting source data; log file, row, field and reason without raw values. Render through Angular safe bindings, never `innerHTML` or sanitiser bypasses; detach popup openers (R-6.2).
 
-## Trade-off
+**R-6.3 stance:** the API currently permits anonymous access for local development. Before production, require login, enforce admin permission per request and refuse startup without authentication configuration; these controls are not implemented. Keep secrets in environment configuration (R-6.5). Accepted-record provenance/ingestion times (R-6.4) and uniform API error envelopes (R-6.6) remain outstanding. Compromised-server protection is outside this local assignment's input-validation threat model.
 
-Separate windows permit comparison and preserve the list, but browser popup policy can prevent opening. Explicit feedback makes that failure visible.
+## One explicit trade-off
 
-## Test evidence and open question
+Strict rejection keeps malformed data out of the application, but rejected events remain unavailable until corrected at their source. Preserve valid neighbouring records and structured rejection logs so the application stays usable (R-5.3).
 
-Added 21 frontend tests: **20 fail, 1 passes**; both earlier date-display tests still pass. All **103 backend regression tests pass**. Tests cover fields, dates, input updates, safe text, closing, popup requests, routing and real component layouts in sized iframes. They do not yet prove cross-window data transfer, browser close/return behaviour or full application layout. Measure the R-5.2 ≥70% changed-code coverage target during implementation.
+## Open questions
 
-For a repeated UUID opened directly or refreshed without the clicked-row payload, which event should be shown? Resolve this before implementing that lookup; do not silently choose the first event.
+- Confirm the implemented brand/type limits of 100/50 characters and ownership of rejected-row corrections.
+- For durable event links, prefer a separate record UUID with a proper database, or retain vehicle UUID URLs with API-backed event tabs defaulting to the clicked record? Tabs would replace the current chooser; sharing an exact event still needs a stable event identifier. These are future options.
+- Which production identity provider and admin-role model should implement R-6.3?
