@@ -988,3 +988,124 @@ _User to complete._
 ### 4. Where AI accelerated you vs where you overrode it
 
 _User to complete._
+
+## Entry 023 — 29 Oct 2026 — Search and 2,000-result cap: failing tests first
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+1. now work on the 2000 records part, now build the search function nicely first, based on date time(current is filter), seat type, the R-1.8 A search box must allow free-text search by vehicle UUID prefix or brand
+2. so after fill the diff search field, click search, then only will show result, all is optional, if no field with data, click search will show all, but ofc is follow 2000 limit
+3. then search will on top row, with a search button on 2nd row, after that only is filter which currently is register and deregister
+4. here my implementation but need a fail test result first
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Prepared tests and documentation only. Confirmed a clean working tree on `issue-5-requirement-conflict` at the user's `0c18b5b` commit (`add the datetime filter`), following red commit `86b9bd1`. Verified the existing GitHub issue #5 remains open through the signed-in browser. Its scope already includes API search and the 2,000-record proposal; no external issue text was edited or posted.
+
+Kept the previously clarified separate date fields and inclusive bounds: `start_date >= startDate`, `end_date <= endDate`, without comparing the separate `time` field. Defined a reviewable API contract in tests/ADR: `POST /api/vehicles/search`, optional `query`, `startDate`, `endDate`, `type`, returning `records`, `totalMatches`, `truncated`. Chose case-insensitive UUID-prefix or brand-substring matching, trimmed query text, exact type matching and AND across supplied fields. Blank fields impose no restriction. These detailed matching/transport choices are assistant specifications for review, not invented quotations from the user.
+
+Specified no result fetch/display until Search. Editing or clearing criteria leaves the submitted result set unchanged until another click. Search fields occupy the first row at 1280×720, Search occupies the second, and status filters follow. Search results are paged locally in groups of 50; status filtering runs across the entire returned set before pagination, with either/both statuses allowed. A new search or status selection resets the page. Asked how to handle more than 2,000 matches; the user's answer is recorded in Entry 024.
+
+**Tests prepared:**
+
+- Added `starter/apps/api/src/test/java/sg/lta/vrls2/VehicleSearchTest.java`: 21 cases covering 0/1/1,999/2,000/2,001/2,005 match boundaries, sorting before capping, full-source matching before limiting, optional/blank fields, UUID-prefix versus substring, case-insensitive brand substring, exact seat type, independent inclusive date bounds, combined criteria, retained repeated-UUID events/all fields, source immutability, empty results, and malformed/oversized criteria. Uses the real controller/service with only CSV loading mocked; configures the standalone JSON converter to match Boot's ISO date serialization. No production search classes or methods were fabricated to make tests compile.
+- Replaced the eight earlier immediate-date-filter cases in `vehicle-list.query.spec.ts` with 16 submitted-search cases. Their date matching and global ordering assertions now live in backend tests; the previous contract remains in Git history. New frontend cases exercise the real component and HTTP service against mocked HTTP responses: submission payloads, independently optional fields, no initial load, draft versus submitted state, clearing, exact 50-row paging, status filtering before paging, cap notice/total, pending-request duplicate prevention, empty/error/retry states, safe rendering and exact-event popup state. The layout test measures actual control geometry in a 1280×720 iframe once the controls exist.
+- Added `vehicle-list.search-test-support.spec.ts` for shared HTTP setup and DOM interactions. It records/drains the legacy startup request so the dedicated no-auto-load test can fail explicitly without unrelated tests failing from unflushed setup requests. Missing-control assertions fail before guards return; tests are not skipped.
+- Adapted the existing two date-display tests and six popup tests to load rows through Search. Retained their display/security/navigation/state assertions; the page-preservation test now navigates to page three of a 102-record response and asserts no further API request. Existing detail and service tests remain unchanged.
+
+**Actual red results:**
+
+- Angular: `npm.cmd test -- --progress=false`, headless Chrome, exit 1. **50 tests: 24 failures, 26 passes**. All 16 submitted-search cases plus eight adapted date/popup cases fail because Search/text/type controls are absent or the current component automatically loads data. The later assertions are present but have not executed past missing controls. There were no compilation failures.
+- Maven in the Java 21 Docker image: **127 tests: 21 failures, 106 passes, 0 errors/skipped**, exit 1. All 21 new search cases receive HTTP 405 because no POST search endpoint exists. The 106 existing tests pass, including 98 CSV-validation and four actual-dataset cases. Logs: ignored `starter/apps/web/.angular/issue-5-search-red.log` and `starter/apps/api/target/issue-5-search-red.log`.
+
+Updated the single shared ADR using the six §9 headings (522 words), distinguishing current implementation from proposed/tested search behavior. Retained issue #1/#3 decisions, security and the explicit R-6.3 production closure plan. Warned that server search departs from R-3.1 and the cap restricts R-4.5 history access; documented the decision rather than claiming full compliance. No performance or green/coverage result is claimed.
+
+**Workflow and limits:** only tests, the shared ADR and this log changed. No production code, CSVs, application build/restart, staging, commit, push, merge or GitHub write. Checked whitespace and change scope. The user should reflect the clarified search behavior and missing root-cause hypothesis in their own issue wording; no AI-written issue was submitted. Review and manually commit this new red baseline before search implementation (§§8/16); the earlier date-filter red commit does not replace this new feature's red evidence.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 024 — 29 Oct 2026 — Confirm the hard search-result cap
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+In response to:
+
+```text
+If more than 2,000 records match, should Search return the first 2,000 in UUID/date order with a visible “refine your search” notice, or allow further batches of 2,000?
+```
+
+User's answer:
+
+```text
+First 2,000 with a refine-search notice
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Applied the user's hard-cap choice to the tests and ADR described in Entry 023. Matching must examine all valid events, sort by full UUID ascending/start date descending, and then return at most 2,000. The response reports the total matched count and whether truncation occurred. The UI must show the cap/total and ask the admin to refine the search; exactly 2,000 matches must not be marked truncated. No continuation/batch-loading feature is specified.
+
+Documented the trade-off explicitly: data is retained on the server, but broad searches cannot display every matching event, and indistinguishable criteria can leave some events unreachable. This is a known R-4.5 limitation. No implementation was added after this answer; the new API/UI tests have the actual failing results recorded in Entry 023, ready for review and manual commit.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
+
+## Entry 025 — 29 Oct 2026 — Explain search and cap tests before commit
+
+### 1. Task description
+
+_User to complete._
+
+### 2. User prompt(s)
+
+```text
+explain the unit tests you added for the search and 2000 records limit and why they fail, so i can review before manually committing
+```
+
+### 3. AI output and user assessment
+
+**AI answer and work produced:**
+
+Reviewed the current search tests, shared test helper and saved red-run logs. Explained the required processing order: search all valid events, sort by full UUID ascending/start date descending, take at most 2,000, then apply client status filters and display 50 rows per page. The 2,000 cap is per search response, not per visible page, and status filtering is restricted to those returned events.
+
+Explained the 21 backend cases in `VehicleSearchTest.java`: six dataset-size boundaries (0, 1, 1,999, 2,000, 2,001, 2,005); optional/blank inputs; trimmed case-insensitive UUID-prefix or brand-substring matching; exact seat-type matching; independent inclusive start/end date bounds; AND across fields; finding a unique match at source record 2,001 before limiting; ordering and preserving repeated-UUID events/all fields without mutating the source; empty-result metadata; and six malformed/oversized input cases. Exactly 2,000 matches must not be marked truncated; 2,001 matches return 2,000 with totalMatches 2,001 and truncated true. Reverse-order fixtures expose a limit-before-sort bug. These tests exercise the real controller/service using controlled CSV-loader fixtures.
+
+Explained the 16 frontend search cases in `vehicle-list.query.spec.ts`: no automatic load; optional fields and a single POST on Search; the three-row 1280×720 layout; one criterion at a time; blank search; draft/cleared values waiting for resubmission; 50-row local paging; status filtering across the returned set before paging, including both statuses; page resets; cap/total/refine notice; prevention of duplicate pending requests; empty/error/retry handling; safe rendering and exact-event popup state. Frontend tests exercise real Angular component/service behavior with mocked HTTP replies, so they do not substitute for backend matching/cap checks.
+
+Clarified that the eight adapted date-display/popup tests retain their original assertions but now require Search to load records. Immediate date-filter tests were superseded because the user changed the behavior to explicit submission; corresponding matching/order assertions moved to backend tests. Earlier versions remain in Git history.
+
+**Why the saved run is red:** Angular has 24 failures and 26 passes: 16 search cases plus eight adapted cases fail on missing Search/text/type controls or the existing automatic startup request. Backend has 21 failures and 106 passes: every new case receives HTTP 405 from the missing POST search route, where 200 or 400 is expected. Deeper assertions have not yet executed past those first failures. Guard returns follow failed assertions and do not mark tests skipped. No compilation failure or passing search implementation is claimed.
+
+**Review limits and workflow:** The tests specify matching/transport choices for review, including ISO date-only fields, exact type and query/type length bounds of 100/50. They do not prove the 250,000-record/two-second target or complete R-4.5 history access under a hard cap; the ADR documents the R-3.1 and R-4.5 departures. This turn did not rerun tests or change production/tests/ADR. The user had already staged the seven prepared files; preserved all staged content and appended only this log entry as an unstaged change. Checked whitespace. Reminded the user to manually commit the red baseline on `issue-5-requirement-conflict` before implementation (§§8/16). No commit, staging, build, restart, external write or user assessment was invented.
+
+**User assessment — what you kept, refined, or rejected, and why:**
+
+_User to complete._
+
+### 4. Where AI accelerated you vs where you overrode it
+
+_User to complete._
